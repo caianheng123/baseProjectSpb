@@ -1,0 +1,10 @@
+2020-05-19 14:55:31,016 [Thread-7] INFO  [o.s.b.c.e.AnnotationConfigEmbeddedWebApplicationContext] AbstractApplicationContext.java:984 - Closing org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@1fac7f69: startup date [Tue May 19 13:35:59 GMT+08:00 2020]; root of context hierarchy
+2020-05-19 14:55:31,032 [Thread-7] INFO  [o.s.context.support.DefaultLifecycleProcessor] DefaultLifecycleProcessor.java:356 - Stopping beans in phase 2147483647
+2020-05-19 14:55:31,072 [Thread-7] INFO  [org.quartz.core.QuartzScheduler] QuartzScheduler.java:585 - Scheduler AbfScheduler_$_LAPTOP-TGESQEI61589866571107 paused.
+2020-05-19 14:55:31,078 [Thread-7] INFO  [o.s.jmx.export.annotation.AnnotationMBeanExporter] MBeanExporter.java:449 - Unregistering JMX-exposed beans on shutdown
+2020-05-19 14:55:31,079 [Thread-7] INFO  [o.s.jmx.export.annotation.AnnotationMBeanExporter] MBeanRegistrationSupport.java:241 - Unregistering JMX-exposed beans
+2020-05-19 14:55:31,085 [Thread-7] INFO  [o.s.scheduling.quartz.SchedulerFactoryBean] SchedulerFactoryBean.java:793 - Shutting down Quartz Scheduler
+2020-05-19 14:55:31,086 [Thread-7] INFO  [org.quartz.core.QuartzScheduler] QuartzScheduler.java:666 - Scheduler AbfScheduler_$_LAPTOP-TGESQEI61589866571107 shutting down.
+2020-05-19 14:55:31,086 [Thread-7] INFO  [org.quartz.core.QuartzScheduler] QuartzScheduler.java:585 - Scheduler AbfScheduler_$_LAPTOP-TGESQEI61589866571107 paused.
+2020-05-19 14:55:31,087 [Thread-7] INFO  [org.quartz.core.QuartzScheduler] QuartzScheduler.java:740 - Scheduler AbfScheduler_$_LAPTOP-TGESQEI61589866571107 shutdown complete.
+2020-05-19 14:55:31,764 [Thread-7] INFO  [com.alibaba.druid.pool.DruidDataSource] DruidDataSource.java:1825 - {dataSource-1} closed

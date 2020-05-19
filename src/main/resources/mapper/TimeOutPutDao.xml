@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.faw.modules.outPutLog.dao.TimeOutPutLogDao">
+	<resultMap id="timeOutLog"
+			   type="com.faw.modules.outPutLog.entity.TimeOutLog">
+		<result column="product_hour" property="product_hour" />
+	</resultMap>
+
+	<select id="getAllOutPutByHours"  resultType="com.faw.modules.outPutLog.entity.TimeOutLog">
+
+	select  DISTINCT total.HOUR as product_hour  from (
+
+	select  D.HOUR ,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,COUNT(1) AS OUT_PUT, M.BRAND_LINE_ALIAS,M.type,M.brand from
+	DB2CCDP.JSC_HOUR_T01_T04_T05_DATA D,
+	( select FACTORY,BRAND_LINE_ALIAS,BRAND_LINE_NAME,MODELL_NAME_1 ,   REPLACE(MODELL,'*','_')||'__' AS MODELL,TYPE,brand
+	from db2admin.ZA_MODELL where type = '10' and is_delete = '0'  ) M
+	WHERE D.MODELL LIKE M.MODELL
+	GROUP BY D.HOUR,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,M.BRAND_LINE_ALIAS,M.type,brand
+
+	union all
+
+	select D.HOUR ,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,COUNT(1) AS OUT_PUT, M.BRAND_LINE_ALIAS,M.type,brand from
+	DB2CCDP.JSC_HOUR_T01_T04_T05_DATA D,
+	( select FACTORY,BRAND_LINE_ALIAS,BRAND_LINE_NAME,MODELL_NAME_1 ,   REPLACE(MODELL,'*','_')||'__' AS MODELL,TYPE,fanlage2,brand
+	from db2admin.ZA_MODELL where type = '20' and is_delete = '0'  ) M
+	WHERE D.MODELL LIKE M.MODELL and D.fanlage2 = M.fanlage2
+	GROUP BY D.HOUR,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,M.BRAND_LINE_ALIAS,M.type,brand
+
+	union all
+
+	select D.HOUR ,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,COUNT(1) AS OUT_PUT, M.BRAND_LINE_ALIAS,M.type,brand from
+	DB2CCDP.JSC_HOUR_T01_T04_T05_DATA D,
+	( select FACTORY,BRAND_LINE_ALIAS,BRAND_LINE_NAME,MODELL_NAME_1 ,   REPLACE(MODELL,'*','_')||'__' AS MODELL,TYPE,fanlage2,pnrstring,brand
+	from db2admin.ZA_MODELL where type = '30' and is_delete = '0'  ) M
+	WHERE D.MODELL LIKE M.MODELL  and Locate(M.pnrstring,D.pnrstring) > 0
+	GROUP BY D.HOUR,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,M.BRAND_LINE_ALIAS,M.type,brand
+
+	union all
+
+	select D.HOUR ,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,COUNT(1) AS OUT_PUT, M.BRAND_LINE_ALIAS,M.type,M.brand from
+	DB2CCDP.JSC_HOUR_T01_T04_T05_DATA D,
+	(  select FACTORY,BRAND_LINE_ALIAS,BRAND_LINE_NAME,MODELL_NAME_1 ,   REPLACE(MODELL,'*','_')||'__' AS MODELL,TYPE,brand
+	from db2admin.ZA_MODELL where type = '10' and is_delete = '0'  and brand = 'AUDI'  ) M
+	WHERE D.MODELL LIKE M.MODELL and Locate('FA0',D.pnrstring) = 0
+	GROUP BY D.HOUR,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,M.BRAND_LINE_ALIAS,M.type,brand
+
+	union all
+
+	select D.HOUR ,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,COUNT(1) AS OUT_PUT, M.BRAND_LINE_ALIAS,M.type,brand from
+	DB2CCDP.JSC_HOUR_T01_T04_T05_DATA D,
+	( select FACTORY,BRAND_LINE_ALIAS,BRAND_LINE_NAME,MODELL_NAME_1 ,   REPLACE(MODELL,'*','_')||'__' AS MODELL,TYPE,fanlage2,brand
+	from db2admin.ZA_MODELL where type = '20' and is_delete = '0'  and brand = 'AUDI'  ) M
+	WHERE D.MODELL LIKE M.MODELL and D.fanlage2 = M.fanlage2 AND Locate('FA0',D.pnrstring) = 0
+	GROUP BY D.HOUR,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,M.BRAND_LINE_ALIAS,M.type,brand
+
+	union all
+
+	select D.HOUR,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,COUNT(1) AS OUT_PUT, M.BRAND_LINE_ALIAS,M.type,brand from
+	DB2CCDP.JSC_HOUR_T01_T04_T05_DATA D,
+	(  select FACTORY,BRAND_LINE_ALIAS,BRAND_LINE_NAME,MODELL_NAME_1 ,   REPLACE(MODELL,'*','_')||'__' AS MODELL,TYPE,fanlage2,pnrstring,brand
+	from db2admin.ZA_MODELL where type = '30' and is_delete = '0'  and brand = 'AUDI'  ) M
+	WHERE D.MODELL LIKE M.MODELL  and Locate(M.pnrstring,D.pnrstring) > 0 and Locate('FA0',D.pnrstring) = 0
+	GROUP BY D.HOUR,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,M.BRAND_LINE_ALIAS,M.type,brand
+
+	union all
+
+	select D.HOUR  ,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,COUNT(1) AS OUT_PUT, M.BRAND_LINE_ALIAS,M.type,M.brand from
+	DB2CCDP.JSC_HOUR_T01_T04_T05_DATA D,
+	(  select FACTORY,BRAND_LINE_ALIAS,BRAND_LINE_NAME,MODELL_NAME_1 ,   REPLACE(MODELL,'*','_')||'__' AS MODELL,TYPE,brand
+	from db2admin.ZA_MODELL where type = '10' and is_delete = '0'  and brand = 'AUDI'  ) M
+	WHERE D.MODELL LIKE M.MODELL and Locate('FA0',D.pnrstring) = 0
+	GROUP BY D.HOUR,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,M.BRAND_LINE_ALIAS,M.type,brand
+
+	union all
+
+	select D.HOUR ,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,COUNT(1) AS OUT_PUT, M.BRAND_LINE_ALIAS,M.type,brand from
+	DB2CCDP.JSC_HOUR_T01_T04_T05_DATA D,
+	( select FACTORY,BRAND_LINE_ALIAS,BRAND_LINE_NAME,MODELL_NAME_1 ,   REPLACE(MODELL,'*','_')||'__' AS MODELL,TYPE,fanlage2,brand
+	from db2admin.ZA_MODELL where type = '20' and is_delete = '0'  and brand = 'AUDI'  ) M
+	WHERE D.MODELL LIKE M.MODELL and D.fanlage2 = M.fanlage2 AND Locate('FA0',D.pnrstring) = 0
+	GROUP BY D.HOUR,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,M.BRAND_LINE_ALIAS,M.type,brand
+
+	union all
+
+	select D.HOUR ,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,COUNT(1) AS OUT_PUT, M.BRAND_LINE_ALIAS,M.type,brand from
+	DB2CCDP.JSC_HOUR_T01_T04_T05_DATA D,
+	(  select FACTORY,BRAND_LINE_ALIAS,BRAND_LINE_NAME,MODELL_NAME_1 ,   REPLACE(MODELL,'*','_')||'__' AS MODELL,TYPE,fanlage2,pnrstring,brand
+	from db2admin.ZA_MODELL where type = '30' and is_delete = '0'  and brand = 'AUDI'  ) M
+	WHERE D.MODELL LIKE M.MODELL  and Locate(M.pnrstring,D.pnrstring) > 0 and Locate('FA0',D.pnrstring) = 0
+	GROUP BY D.HOUR,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,M.BRAND_LINE_ALIAS,M.type,brand
+
+	union all
+
+	select D.HOUR ,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,COUNT(1) AS OUT_PUT, M.BRAND_LINE_ALIAS,M.type,M.brand from
+	DB2CCDP.JSC_HOUR_T01_T04_T05_DATA D,
+	( select FACTORY,BRAND_LINE_ALIAS,BRAND_LINE_NAME,MODELL_NAME_1 ,   REPLACE(MODELL,'*','_')||'__' AS MODELL,TYPE,brand
+	from db2admin.ZA_MODELL where type = '10' and is_delete = '0'  and (brand = 'VW' or brand = 'EBO') ) M
+	WHERE D.MODELL LIKE M.MODELL and Locate('S99',D.pnrstring)=0
+	GROUP BY D.HOUR,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,M.BRAND_LINE_ALIAS,M.type,brand
+	union all
+	select D.HOUR ,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,COUNT(1) AS OUT_PUT, M.BRAND_LINE_ALIAS,M.type,brand from
+	DB2CCDP.JSC_HOUR_T01_T04_T05_DATA D,
+	( select FACTORY,BRAND_LINE_ALIAS,BRAND_LINE_NAME,MODELL_NAME_1 ,   REPLACE(MODELL,'*','_')||'__' AS MODELL,TYPE,fanlage2,brand
+	from db2admin.ZA_MODELL where type = '20' and is_delete = '0'  and (brand = 'VW' or brand = 'EBO') ) M
+	WHERE D.MODELL LIKE M.MODELL and D.fanlage2 = M.fanlage2 and Locate('S99',D.pnrstring)= 0
+	GROUP BY D.HOUR,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,M.BRAND_LINE_ALIAS,M.type,brand
+	union all
+	select D.HOUR,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,COUNT(1) AS OUT_PUT, M.BRAND_LINE_ALIAS,M.type,brand from
+	DB2CCDP.JSC_HOUR_T01_T04_T05_DATA D,
+	( select FACTORY,BRAND_LINE_ALIAS,BRAND_LINE_NAME,MODELL_NAME_1 ,   REPLACE(MODELL,'*','_')||'__' AS MODELL,TYPE,fanlage2,pnrstring,brand
+	from db2admin.ZA_MODELL where type = '30' and is_delete = '0'  and (brand = 'VW' or brand = 'EBO') ) M
+	WHERE D.MODELL LIKE M.MODELL  and Locate(M.pnrstring,D.pnrstring) > 0 and Locate('S99',D.pnrstring)= 0
+	GROUP BY D.HOUR,D.WERK,M.FACTORY,M.BRAND_LINE_NAME,M.MODELL_NAME_1,D.STATUS0,M.BRAND_LINE_ALIAS,M.type,brand
+
+	) total order by product_hour
+	</select>
+</mapper>

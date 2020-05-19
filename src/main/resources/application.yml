@@ -1,0 +1,105 @@
+# Tomcat
+server:
+  tomcat:
+    uri-encoding: UTF-8
+    max-threads: 1000
+    min-spare-threads: 30
+  port: 89
+  connection-timeout: 5000
+  servlet:
+    context-path: /
+
+spring:
+  # 环境 dev|test|prod
+  profiles:
+    active: dev
+  # jackson时间格式化
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+      enabled: true
+
+  mvc:
+    throw-exception-if-no-handler-found: true
+    static-path-pattern: /static/**
+  resources:
+    add-mappings: false
+
+#mybatis
+#mybatis:
+  #mapper-locations: classpath:mapper/*.xml
+  #type-aliases-package: com.paraview.abf.modules.*.entity
+#mybatis-plus
+mybatis-plus:
+  mapper-locations: classpath:mapper/**/*.xml
+  #实体扫描，多个package用逗号或者分号分隔
+  typeAliasesPackage: com.faw.modules.*.entity
+  global-config:
+    #主键类型  0:"数据库ID自增", 1:"用户输入ID",2:"全局唯一ID (数字类型唯一ID)", 3:"全局唯一ID UUID";
+    id-type: 0
+    #字段策略 0:"忽略判断",1:"非 NULL 判断"),2:"非空判断"
+    field-strategy: 2
+    #驼峰下划线转换
+    db-column-underline: true
+    #刷新mapper 调试神器
+    refresh-mapper: true
+    #数据库大写下划线转换
+    #capital-mode: true
+    #序列接口实现类配置
+    #key-generator: com.baomidou.springboot.xxx
+    #逻辑删除配置
+    logic-delete-value: -1
+    logic-not-delete-value: 0
+    #自定义填充策略接口实现
+    #meta-object-handler: com.baomidou.springboot.xxx
+    #自定义SQL注入器
+    sql-injector: com.baomidou.mybatisplus.mapper.LogicSqlInjector
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    call-setters-on-nulls: true
+
+abf:
+  redis:
+    open: false
+  shiro:
+    redis: false
+  # jwt认证配置
+  jwt:
+    # 加密秘钥
+    secret: f4e2e52034348f86b67cde581c0f9eb5[www.paraview.cn]
+    # token有效时长，7天，单位秒
+    expire: 604800
+    header: token
+
+  # 邮箱配置
+  mail:
+    from: xzbg@faw-vw.com
+    isSSL: false
+    sslSmtpPort:
+    smtp:
+      auth: false
+      host: 10.228.4.2
+      port: 25
+      password:
+      attachment:
+        basePath: ""
+        location: ""
+  #ParaSSO配置
+  security:
+    sso:
+      enabled: true
+      client_id: en70AWLhS0
+      client_secret: 45f3414e-6da5-440a-ade3-b20b5d7ea813
+      redirect_uri: http://10.226.57.207:89/sso/callback
+      requestTokenURL: https://sso.faw-vw.com/sso/profile/oauth2/accessToken
+      requestProfileURL: https://sso.faw-vw.com/sso/profile/oauth2/profile
+      redirect_uri_token_pc: http://10.226.57.207:8087/ssocallback1
+      redirect_uri_token_pad: http://10.226.57.207:8088/ssocallback2
+      redirect_uri_token_padLogin: http://10.226.57.207:8088/login
+      redirect_uri_token_pad_yu: http://10.226.57.207:8088/ssocallback2
+      redirect_uri_token_padLogin_yu: http://10.226.57.207:8088/login

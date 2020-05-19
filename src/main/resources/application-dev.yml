@@ -1,0 +1,86 @@
+spring:
+    datasource:
+        type: com.alibaba.druid.pool.DruidDataSource
+        druid:
+            kudu:  #kudu数据源
+                enabled: false      #是否开启
+                isKerberos: false   #是否为Kerberos认证模式
+                driverClassName: com.cloudera.impala.jdbc41.Driver
+#                url: jdbc:impala://192.168.1.46:21050/kudu_test
+                url: jdbc:impala://{0}:21050/;AuthMech=1;KrbRealm={1};KrbHostFQDN={0};KrbServiceName=impala
+                username:
+                password:
+            first:  #数据源1 oracle
+                driverClassName: oracle.jdbc.driver.OracleDriver  # oracle驱动
+                url: jdbc:oracle:thin:@10.226.95.174:1521:SCPDCP
+                username: FAW_TEST
+                password: FAW_TEST
+            second:  #数据源2 db2
+                driverClassName: com.ibm.db2.jcc.DB2Driver   # db2驱动
+                url: jdbc:db2://10.228.201.188:50000/fh79dwab
+                username: db2admin
+                password: db2admin
+#            three:  #数据源3 mysql
+#                driverClassName: com.mysql.jdbc.Driver    # mysql驱动
+#                url: jdbc:mysql://localhost:3306/fvw?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8
+#                username: root
+#                password: root
+            initial-size: 10
+            max-active: 100
+            min-idle: 10
+            max-wait: 60000
+            pool-prepared-statements: true
+            max-pool-prepared-statement-per-connection-size: 20
+            time-between-eviction-runs-millis: 60000
+            min-evictable-idle-time-millis: 300000
+            #validation-query: SELECT 1 FROM DUAL
+            test-while-idle: true
+            test-on-borrow: false
+            test-on-return: false
+            stat-view-servlet:
+                enabled: true
+                url-pattern: /druid/*
+#                login-username: admin
+#                login-password: admin
+            filter:
+                stat:
+                    log-slow-sql: true
+                    slow-sql-millis: 1000
+                    merge-sql: false
+                wall:
+                    config:
+                        multi-statement-allow: true
+    redis:
+        open: true  # 是否开启redis缓存  true开启   false关闭
+        database: 0
+        host: 127.0.0.1
+        port: 6379
+        password:    # 密码（默认为空）
+        timeout: 6000  # 连接超时时长（毫秒）
+        jedis:
+            pool:
+                max-active: 1000  # 连接池最大连接数（使用负值表示没有限制）
+                max-wait: -1ms      # 连接池最大阻塞等待时间（使用负值表示没有限制）
+                max-idle: 10      # 连接池中的最大空闲连接
+                min-idle: 5       # 连接池中的最小空闲连接
+http:
+  #最大连接数
+  maxTotal: 100
+  #并发数
+  defaultMaxPerRoute: 20
+  #创建连接的最长时间
+  connectTimeout: 1000
+  #从连接池中获取到连接的最长时间
+  connectionRequestTimeout: 500
+  #数据传输的最长时间
+  socketTimeout: 10000
+  #提交请求前测试连接是否可用
+  staleConnectionCheckEnabled: true
+  #证书路径
+  keyStorePath: /usr/https_cert/keystore.jks
+  #证书密码
+  keyStorepass: 123456
+
+abf:
+    log:
+                path: C:/Users/Administrator/Desktop/program/program/log
