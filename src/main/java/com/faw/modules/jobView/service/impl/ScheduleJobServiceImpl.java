@@ -34,10 +34,10 @@ public class ScheduleJobServiceImpl extends ServiceImpl<ScheduleJobDao, Schedule
 	public void init() throws Exception{
 		// 在初始化调度的时候clean一下 ,解决有时报如下异常的问题：
 		// org.quartz.ObjectAlreadyExistsException: Unable to store Job
-		scheduler.clear();
+		scheduler.clear(); // 清空任务
 		List<ScheduleJobEntity> scheduleJobList = this.selectList(new EntityWrapper<ScheduleJobEntity>()
 				.eq("doc_status", ScheduleJobEntity.STATUS_NORMAL)
-				);
+				);//状态为 1 的 进行 创建任务
 		for(ScheduleJobEntity scheduleJob : scheduleJobList){
 			CronTrigger cronTrigger = ScheduleUtils.getCronTrigger(scheduler, scheduleJob.getId());
             //如果不存在，则创建

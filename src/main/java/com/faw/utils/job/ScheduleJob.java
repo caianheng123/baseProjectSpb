@@ -33,7 +33,7 @@ public class ScheduleJob extends QuartzJobBean {
 	
     @Override
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
-		Object o = context.getMergedJobDataMap().get(ScheduleJobEntity.JOB_PARAM_KEY);
+		Object o = context.getMergedJobDataMap().get(ScheduleJobEntity.JOB_PARAM_KEY);//每次创建任务时绑定的 实例对象  参数
 		String str = JSONObject.toJSONString(o);
 		ScheduleJobEntity scheduleJob = JSONObject.parseObject(str,ScheduleJobEntity.class);
 //        ScheduleJobEntity scheduleJob = (ScheduleJobEntity) context.getMergedJobDataMap()

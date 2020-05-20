@@ -13,8 +13,8 @@ spring:
             first:  #数据源1 oracle
                 driverClassName: oracle.jdbc.driver.OracleDriver  # oracle驱动
                 url: jdbc:oracle:thin:@10.226.95.174:1521:SCPDCP
-                username: FAW_TEST
-                password: FAW_TEST
+                username: PIWEB
+                password: init1234
             second:  #数据源2 db2
                 driverClassName: com.ibm.db2.jcc.DB2Driver   # db2驱动
                 url: jdbc:db2://10.228.201.188:50000/fh79dwab

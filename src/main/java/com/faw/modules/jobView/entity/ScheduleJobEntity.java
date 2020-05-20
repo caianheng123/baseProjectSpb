@@ -11,7 +11,7 @@ import org.hibernate.validator.constraints.NotBlank;
  * @author Mark liushengbin7@gmail.com
  * @since 1.2.0 2016-11-28
  */
-@TableName("schedule_job")
+@TableName("SCHEDULE_JOB")
 @Data
 public class ScheduleJobEntity extends BaseEntity {
 	private static final long serialVersionUID = 1L;
