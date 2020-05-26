@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.faw.modules.piWebJob.dao.OnlineDataDao">
+	<resultMap id="resultMap"
+			   type="com.faw.modules.piWebJob.entity.OnLineData">
+		<result column="ID" property="id" />
+		<result column="GUGE_ID" property="gaugeId" />
+		<result column="PART_ID" property="partId" />
+		<result column="PART_ID2" property="partId2" />
+		<result column="MEASURE_TIME" property="measureTime" />
+		<result column="MODEL" property="model" />
+		<result column="QUAL" property="qual" />
+		<result column="SHIFT" property="shift" />
+		<result column="DATA_TYPE" property="dataType" />
+		<result column="FIXTURE" property="fixTure" />
+		<result column="FACTORY" property="factory" />
+		<result column="UNIT_NAME" property="unitName" />
+		<result column="UNIT_NUMBER" property="unitNumber" />
+		<result column="MEASURE_POINT" property="measurePoint" />
+		<result column="DIRECT" property="direct" />
+		<result column="MEASURE_X" property="measureX" />
+		<result column="MEASURE_Y" property="measureY" />
+		<result column="MEASURE_Z" property="measureZ" />
+		<result column="MEASURE_D" property="measureD" />
+		<result column="THEORY_X" property="theoryX" />
+		<result column="THEORY_Y" property="theoryY" />
+		<result column="THEORY_Z" property="theoryZ" />
+		<result column="THEORY_D" property="theoryD" />
+		<result column="JUST_NO" property="justNo" />
+		<result column="POINT_SIZE" property="pointSize" />
+		<result column="FORMULA" property="formula" />
+		<result column="MEASUR_MACHINE" property="measureMachine" />
+		<result column="MEASURER" property="measurer" />
+		<result column="RESERVE1" property="reserve1" />
+		<result column="RESERVE2" property="reserve2" />
+		<result column="RESERVE3" property="reserve3" />
+	</resultMap>
+
+
+
+	<insert id="insertMyBatch" parameterType="java.util.List">
+		INSERT INTO PIWEB_ONLINEDATA
+		(
+		ID,
+		GUGE_ID,
+		PART_ID,
+		PART_ID2,
+		MEASURE_TIME,
+		MODEL,
+		QUAL,
+		SHIFT,
+		DATA_TYPE,
+		FIXTURE,
+		FACTORY,
+		UNIT_NAME,
+		UNIT_NUMBER,
+		MEASURE_POINT,
+		DIRECT,
+		MEASURE_X,
+		MEASURE_Y,
+		MEASURE_Z,
+		MEASURE_D,
+		THEORY_X,
+		THEORY_Y,
+		THEORY_Z,
+		THEORY_D,
+		JUST_NO,
+		POINT_SIZE,
+		FORMULA,
+		MEASUR_MACHINE,
+		MEASURER,
+		RESERVE1,
+		RESERVE2,
+		RESERVE3
+
+		)
+		<foreach collection="list" item="item" index="index" separator="union all">
+			(
+			select
+			#{item.id, jdbcType=VARCHAR},
+			#{item.gaugeId, jdbcType=VARCHAR},
+			#{item.partId, jdbcType=VARCHAR},
+			#{item.partId2, jdbcType=VARCHAR},
+			#{item.measureTime, jdbcType=VARCHAR},
+			#{item.model, jdbcType=VARCHAR},
+			#{item.qual, jdbcType=VARCHAR},
+			#{item.shift, jdbcType=VARCHAR},
+			#{item.dataType, jdbcType=VARCHAR},
+			#{item.fixTure, jdbcType=VARCHAR},
+			#{item.factory, jdbcType=VARCHAR},
+			#{item.unitName, jdbcType=VARCHAR},
+			#{item.unitNumber, jdbcType=VARCHAR},
+			#{item.measurePoint, jdbcType=VARCHAR},
+			#{item.direct, jdbcType=VARCHAR},
+			#{item.measureX, jdbcType=VARCHAR},
+			#{item.measureY, jdbcType=VARCHAR},
+			#{item.measureZ, jdbcType=VARCHAR},
+			#{item.measureD, jdbcType=VARCHAR},
+			#{item.theoryX, jdbcType=VARCHAR},
+			#{item.theoryY, jdbcType=VARCHAR},
+			#{item.theoryZ, jdbcType=VARCHAR},
+			#{item.theoryD, jdbcType=VARCHAR},
+			#{item.justNo, jdbcType=VARCHAR},
+			#{item.pointSize, jdbcType=VARCHAR},
+			#{item.formula, jdbcType=VARCHAR},
+			#{item.measureMachine, jdbcType=VARCHAR},
+			#{item.measurer, jdbcType=VARCHAR},
+			#{item.reserve1, jdbcType=VARCHAR},
+			#{item.reserve2, jdbcType=VARCHAR},
+			#{item.reserve3, jdbcType=VARCHAR}
+
+			from
+			dual
+			)
+		</foreach>
+	</insert>
+
+</mapper>

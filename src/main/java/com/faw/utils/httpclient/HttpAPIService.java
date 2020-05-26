@@ -134,12 +134,9 @@ public class HttpAPIService {
      /*
         String encoding = DatatypeConverter.printBase64Binary("haibin.liu.qa:Ljh2009@".getBytes("UTF-8"));
         httpPost.setHeader("Authorization", "Basic " +encoding);
-        */
-        String plainCredentials = "haibin.liu.qa:Ljh2009@";
-        String base64Credentials = new String(Base64.encodeBase64(plainCredentials.getBytes()));
-        httpPost.setHeader("Authorization", "Basic " +base64Credentials);
-
+    */
         // 判断map是否为空，不为空则进行遍历，封装from表单对象
+        httpPost.setHeader("Content-Type", "application/json");
         if (params != null) {
             List<NameValuePair> parameters = new ArrayList<NameValuePair>();
             //遍历map集合,给list赋值

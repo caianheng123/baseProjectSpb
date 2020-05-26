@@ -13,7 +13,9 @@ package com.faw.utils.httpclient;
 
 import org.apache.commons.net.util.Base64;
 import org.apache.http.HttpEntity;
+import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.AuthSchemes;
@@ -22,8 +24,10 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.config.Lookup;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLContexts;
+import org.apache.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -49,6 +53,7 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -199,8 +204,27 @@ public class HttpClient {
         CredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(AuthScope.ANY,
                 new UsernamePasswordCredentials("haibin.liu.qa", "Ljh2009@"));
+
+        Lookup<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create().
+                register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(true)).build();
+
+        BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(new AuthScope(null, -1, null), new Credentials() {
+                    @Override
+                    public Principal getUserPrincipal() {
+                        return null;
+                    }
+
+                    @Override
+                    public String getPassword() {
+                        return null;
+                    }
+         });
+
         return httpClientBuilder
-                .build();
+                 .setDefaultAuthSchemeRegistry(authSchemeRegistry)
+                 .setDefaultCredentialsProvider(credentialsProvider)
+                 .build();
     }
 
     /**

@@ -10,6 +10,7 @@ import com.faw.utils.lang.StringUtils;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.IOUtils;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -18,8 +19,10 @@ import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipFile;
 import org.apache.tools.zip.ZipOutputStream;
@@ -1028,6 +1031,107 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
             webappPath = System.getProperty("user.dir");
         }
         return webappPath;
+    }
+
+
+    /**
+     * @Author：
+     * @Description：获取某个目录下所有直接下级文件，不包括目录下的子目录的下的文件，所以不用递归获取
+     * @Date：
+     */
+
+
+    public static List<HashMap<String,Object>> readDir(String path){
+        File file = new File(path);
+        File[] files =  new File[]{}; //定义文件夹内的 文件数组
+        if(file.isDirectory()){
+              files = file.listFiles();
+        }
+        List<HashMap<String,Object>> fileInfos =  new ArrayList<>();
+        HashMap<String,Object> fileMap = null;
+
+        if(ArrayUtils.isNotEmpty(files)){
+            for(File f : files){
+                if(!f.isDirectory()){
+                    fileMap = new HashMap();
+                    String fileName = f.getName();
+                    String prefix="";
+                    if(fileName.contains(".")){
+                         prefix = fileName.substring(fileName.lastIndexOf("."));//如果想获得不带点的后缀，变为fileName.lastIndexOf(".")+1
+                    }
+                    int num=prefix.length();//得到后缀名长度
+                    String fileOtherName=fileName.substring(0, fileName.length()-num);//得到文件名。去掉了后缀
+
+                    fileMap.put("fileName",fileOtherName);
+                    fileMap.put("lineValues",resolveFile(f));
+                    fileInfos.add(fileMap);
+                }
+            }
+
+        }
+        return fileInfos;
+    }
+
+
+    public static List<String> resolveFile(File file){
+        List<String> lineValues =  new ArrayList<>();
+        try {
+            BufferedReader bufferedReader= new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+            String tem=null;
+            StringBuffer stringBuffer =new StringBuffer();
+            while(true){
+                /*
+                 readline 读到空行 为空 读到 没有文件为null
+                */
+                tem=bufferedReader.readLine();
+                if(tem ==null){//最后一行了
+                    break;
+                }
+                if(tem.isEmpty())
+                    continue;
+                lineValues.add(tem);//将非空数据存到数据内
+            }
+
+         /*   String value = stringBuffer.toString();
+            value =value.trim().replaceAll("\\s{2,}","*");
+            ArrayList<String>  list =new ArrayList<>(Arrays.asList(value.split("#")));
+            for (String  s : list) {
+                System.out.println(s);
+            }
+
+            System.out.println(stringBuffer.toString());
+            for(String filter : filers){
+                filter =filter.replace("*","\\\\*");
+                Pattern p= Pattern.compile(filter);
+                Matcher m=p.matcher("aaaa");
+                if(m.find()){
+
+                }
+            }*/
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return lineValues;
+    }
+    public static List<String> getFiles(String path) {
+        List<String> files = new ArrayList<String>();
+        File file = new File(path);
+        File[] tempList = file.listFiles();
+
+        for (int i = 0; i < tempList.length; i++) {
+            if (tempList[i].isFile()) {
+                files.add(tempList[i].toString());
+                //文件名，不包含路径
+                //String fileName = tempList[i].getName();
+            }
+            if (tempList[i].isDirectory()) {
+                //这里就不递归了，
+            }
+        }
+        return files;
     }
 
 }

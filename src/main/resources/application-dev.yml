@@ -84,3 +84,7 @@ http:
 abf:
     log:
                 path: C:/Users/Administrator/Desktop/program/program/log
+
+    onlineData:
+                dirPathTxt: F:\Ideal\workspace\quality\src\test\testfile\txt
+                dirPathDemo: F:\Ideal\workspace\quality\src\test\testfile\demo

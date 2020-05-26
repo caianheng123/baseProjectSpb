@@ -2,10 +2,11 @@ package com.faw.modules;
 
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
-import com.baomidou.mybatisplus.mapper.Wrapper;
 import com.faw.modules.jobView.entity.ScheduleJobLogEntity;
 import com.faw.modules.jobView.service.ScheduleJobLogService;
 import com.faw.modules.outPutLog.service.TimeOutPutLogService;
+import com.faw.modules.piWebJob.dao.OnlineDataDao;
+import com.faw.modules.piWebJob.entity.OnLineData;
 import com.faw.utils.httpclient.HttpAPIService;
 import com.faw.utils.httpclient.HttpResult;
 import com.faw.utils.impala.ImpalaUtils;
@@ -15,8 +16,9 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+import com.faw.modules.piWebJob.service.IOnlineAnalysis;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +31,11 @@ public class QualityApplicationTests {
 	private HttpAPIService httpAPIService;
 	@Autowired
 	private ScheduleJobLogService scheduleJobLogService;
+	@Autowired
+	private  IOnlineAnalysis onlineAnalysis;
+
+	@Autowired
+	private OnlineDataDao OnlineDataDao;
 	@Test
 	public void dataSourceTest() {
 		//数据源2测试
@@ -76,7 +83,20 @@ public class QualityApplicationTests {
 
 	@Test
 	public void httpTest() throws  Exception {
-		HttpResult str = httpAPIService.doPost("https://iaas-piweb.faw-vw.in:8080/dataServiceRest/parts");
-		System.out.println("========="+str.getBody());
+		String str = httpAPIService.doGet("http://localhost/test/dataServiceRest/parts?partPath=/VW216/ZSB/AUFBAU1/");
+		System.out.println("========="+str);
+	}
+
+	@Test
+	public void fileReadTest(){
+		onlineAnalysis.demoAnalysisRule();
+	}
+
+	@Test
+	public void batchInsert(){
+		OnLineData a = new OnLineData();
+		List<OnLineData> lineData = new ArrayList<>();
+		lineData.add(a);
+		OnlineDataDao.insertMyBatch(lineData);
 	}
 }
