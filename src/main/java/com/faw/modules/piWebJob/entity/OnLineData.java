@@ -27,8 +27,6 @@ public class OnLineData extends IdEntity{
     public  OnLineData(){
         super();
     }
-    @TxtFild(value = "GAUGE ID")
-    private String gaugeId;
 
     @TxtFild(value = "Part ID")
     private String partId;
@@ -59,27 +57,17 @@ public class OnLineData extends IdEntity{
     @TxtFild(value = "MODEL")
     private String model;
 
-    @TxtFild(value = "QUAL")
-    private String qual;
-
-    @TxtFild(value = "SHIFT")
-    private String shift;
-
-    @TxtFild(value = "DATA TYPE")
-    private String dataType;
-
     @TxtFild(value = "FIXTURE")
     private String fixTure;
 
     private String factory;
 
+    @TxtFild(value = "GAUGE ID")
     private String unitName;
-
-    private String unitNumber;
 
     private String measurePoint;
 
-    private  String direct;//方向
+    private  String measureCategory;//方向
 
     private String measureX;
 
@@ -87,25 +75,14 @@ public class OnLineData extends IdEntity{
 
     private String  measureZ;
 
-    private String  measureD;
-
     private String  theoryX;
 
     private String  theoryY;
 
     private String  theoryZ;
 
-    private String  theoryD;
-
     private String justNo;  //钢号
 
-    private String pointSize;  //功能尺寸点
-
-    private String formula; //公式
-
-    private String measureMachine;//测量机
-
-    private String measurer;//测量员
 
     private String reserve1;//预留字段1
 

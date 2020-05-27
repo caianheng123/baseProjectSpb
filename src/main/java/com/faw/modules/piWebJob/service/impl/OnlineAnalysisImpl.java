@@ -67,7 +67,7 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
           }
 
           //匹配某个对象的正则  筛选出那些对象
-            String patterObj = "^(D|B|A|LS|US|UR|LR)+\\s+\\S*\\s+(X|Y|Z)+$";
+            String patterObj = "^(D|B|A|LS|US|UR|LR|UT|LT)+\\s+\\S*\\s+(X|Y|Z)+$";
             Pattern p= Pattern.compile(patterObj);
 
 
@@ -167,15 +167,7 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                                 if(clown.split(" ")[0].indexOf(direction)!=-1){
 
                                     //设置测量点
-                                    onLineData.setMeasurePoint(clown);
-
-                                    //设置零件编号 取测量点 _ 分隔 第一个信息
-                                    String[] clownSpiltInfo = clown.split("_");
-                                    if(clownSpiltInfo.length>0){
-                                        String unitStr = clownSpiltInfo[0];
-                                        String unitNumber = unitStr.split(" ")[1];
-                                        onLineData.setUnitNumber(unitNumber);
-                                    }
+                                    onLineData.setMeasurePoint(clown.substring(0,clown.lastIndexOf(" ")+1));
 
                                     if(clown.indexOf("X") !=-1){ //取X轴信息
                                         for(Map<String,String> valMap:dataMapList){//存值的maplist
@@ -196,7 +188,7 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
 
                             }
                             //包含该方向
-                            onLineData.setDirect(direction);
+                            onLineData.setMeasureCategory(direction);
                             //设置测量时间
                             onLineData.txtSetMeasureTime();
 

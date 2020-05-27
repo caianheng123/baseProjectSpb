@@ -89,7 +89,7 @@ public class QualityApplicationTests {
 
 	@Test
 	public void fileReadTest(){
-		onlineAnalysis.demoAnalysisRule();
+		onlineAnalysis.txtAnalysisRule();
 	}
 
 	@Test
