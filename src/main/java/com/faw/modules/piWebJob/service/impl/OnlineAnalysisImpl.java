@@ -50,10 +50,11 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
     public  void  txtAnalysisRule(){
         List<HashMap<String,Object>> results = 	FileUtils.readDir(txtDir);
         for(HashMap m : results){ // 一个文件一个文件解析
+            //添加筛选的文件名 进行存储
+
           ArrayList<String> lineVue = (ArrayList<String>) m.get("lineValues");
             List<String []> clowns = new ArrayList<>();// 全部row信息
             List<String []> values = new ArrayList<>();// 全部value信息
-            List<List<String>> baseInfoRows = new ArrayList<>();// 具体到某个对象的 公共信息
             List<Set<String>> measurePoints = new ArrayList<>(); // 筛选测量点名
 
           for(int x = 0 ; x < lineVue.size();x++){
@@ -65,7 +66,6 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                   values.add(valueArray);
               }
           }
-
           //匹配某个对象的正则  筛选出那些对象
             String patterObj = "^(D|B|A|LS|US|UR|LR|UT|LT)+\\s+\\S*\\s+(X|Y|Z)+$";
             Pattern p= Pattern.compile(patterObj);
@@ -74,7 +74,6 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
             for(int x = 0;x< clowns.size();x++){
                 String[] recodeArray = clowns.get(x);
                 //循环所有的row信息 按空格分隔  不含空格的为 公共信息  含空格且长度为3第二项为车型
-                List<String> baseInfoList = new ArrayList();
                 Set<String>  pointInfoSet = new HashSet<>();
 
                for(int y = 0; y< recodeArray.length; y++){
@@ -84,11 +83,8 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                        if(infoArr.length == 3){
                            pointInfoSet.add(infoArr[1]);//车型
                        }
-                   }else{
-                       baseInfoList.add(recodeArray[y]);
                    }
                }
-                baseInfoRows.add( baseInfoList );
                 measurePoints.add(pointInfoSet);
             }
 
@@ -121,16 +117,12 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                             if(clown.indexOf(clownStr)!=-1){
                                 objClownList.add(clown);
                             }
-
                         }
-
                     }
                     objClowns.add(objClownList);
                 }
 
             }
-
-
 
             //2 根据 objClowns 内的 数据 根据方向创建对象
             for(List<String> clownObjs : objClowns){
@@ -143,10 +135,8 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                         directionSet.add(direction);
                     }
                 }
-
                 try {
-
-                        //循环方向
+                        //循环测量类别
                         for(String direction : directionSet){//一个方向创建一个对象
                             OnLineData onLineData = new OnLineData();
                             Field[] fields = onLineData.getClass().getDeclaredFields();
@@ -157,18 +147,14 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                                     String key = txtFild.value();
                                     for(Map<String,String> valMap:dataMapList){//存值的maplist
                                         field.set(onLineData,valMap.get(key));
-
                                     }
                                 }
-
                             }
                             for(String clown : clownObjs) {//所有方向的key
                                 //设置 测量 x y z 值
                                 if(clown.split(" ")[0].indexOf(direction)!=-1){
-
                                     //设置测量点
                                     onLineData.setMeasurePoint(clown.substring(0,clown.lastIndexOf(" ")+1));
-
                                     if(clown.indexOf("X") !=-1){ //取X轴信息
                                         for(Map<String,String> valMap:dataMapList){//存值的maplist
                                             onLineData.setMeasureX(valMap.get(clown));
@@ -185,27 +171,22 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                                         }
                                     }
                                 }
-
                             }
                             //包含该方向
                             onLineData.setMeasureCategory(direction);
                             //设置测量时间
                             onLineData.txtSetMeasureTime();
-
                             onLineDatas.add(onLineData);
                         }
 
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
-
             }
-
             //持久化到数据库
             if(onLineDatas.size()>0){
                 onlineDataDao.insertMyBatch(onLineDatas);
             }
-
         }
     }
     //demo 格式文件分析
@@ -219,7 +200,6 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
         }
         ArrayList<String> lineValue = (ArrayList<String>) file.get("lineValues");
         Map<String,List<String>>  objectMap = new HashMap<>(); //存放对象
-
         String key = "";
         for(String str: lineValue){
             // 每个独立的信息 都是 OUTPUT/ 开头的
@@ -249,37 +229,194 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                 continue;
             }else if("".equals(key)){
                 continue;
+            }else if(str.indexOf("RECALL/DA")!=-1){
+                key = "RECALL/DA";
+                if(!objectMap.containsKey(key)){
+                    objectMap.put(key,new ArrayList<String>());
+                }
+                continue;
             }
             ArrayList<String> objInfoList = (ArrayList<String>) objectMap.get(key);
-
             objInfoList.add(str);
-
             objectMap.put(key,objInfoList);
-
         }
-
         List<String> baseInfos = new ArrayList<>();
 
-
         if(objectMap.size()>0){
-            //把基本信息拆出来  key为  R1 , DATE_TIME  R99
-            if(objectMap.containsKey("R1")){
+            //版本1
+            if(objectMap.containsKey("R_DATE")){
+                baseInfos.addAll(objectMap.get("R_DATE"));
+                objectMap.remove("R_DATE");
+            }
+            if(objectMap.containsKey("R_TIME")){
+                baseInfos.addAll(objectMap.get("R_TIME"));
+                objectMap.remove("R_TIME");
+            }
+            if(objectMap.containsKey("R_AUTO")){//车型
+                baseInfos.addAll(objectMap.get("R_AUTO"));
+                objectMap.remove("R_AUTO");
+            }
+            if(objectMap.containsKey("R_PARTNM")){//零件名
+                baseInfos.addAll(objectMap.get("R_PARTNM"));
+                objectMap.remove("R_PARTNM");
+            }
+            //版本2
+            if(objectMap.containsKey("R1")){//整体时间
                 baseInfos.addAll(objectMap.get("R1"));
                 objectMap.remove("R1");
             }
-            if(objectMap.containsKey("DATE_TIME")){
+            if(objectMap.containsKey("DATE_TIME")){//整体时间
                 baseInfos.addAll(objectMap.get("DATE_TIME"));
                 objectMap.remove("DATE_TIME");
             }
+            //不解析的信息
+            objectMap.remove("R_CP");
+            objectMap.remove("R_TYP");
+            objectMap.remove("R_MPTYP");
+            objectMap.remove("R_MACHINE");
+            objectMap.remove("R_TEILID");
+            objectMap.remove("R_Operator");
+        }
 
+        //基础数据map处理
+        Map<String,String> baseInfoMap = new HashMap<>();
+        for(String baseInfo: baseInfos){
+            baseInfo = baseInfo.replace(" ","");
+            String[] basInfoArr = baseInfo.split("=");
+            String value = basInfoArr[1].replaceAll("'","");
+            baseInfoMap.put(basInfoArr[0],value);
         }
 
         //实例化数据
+        List<OnLineData> dataList = new ArrayList<>();
         for(String mapKey : objectMap.keySet()){
             List<String> mapList = objectMap.get(mapKey);
-            for(String info : mapList){
+            String[] categorys = new String[]{"F","T","TA"};// F：理论值  T:公差    TA:偏差
+            String[]  valeKeys = new String[]{"X","Y","Z","P"}; //
+            String[]  directs = new String[]{"UP","DOWN"};// UP:上公差   DOWN:下公差
+                for(int x = 0;x<categorys.length;x++){
+                    if("T".equals(categorys[x])){
+                        for (int y=0;y<directs.length;y++){
+                            //创建对像
+                            OnLineData onLineData = new OnLineData();
+                                onLineData.setCategoryDirect(directs[y]);//设置方向
+                                onLineData.setMeasurePoint(mapKey);//设置测量点
+                                onLineData.setMeasureCategory(categorys[x]);//设置测量点
+                                onLineData = demoSetBaseInfo(onLineData,baseInfoMap); //设置基础信息
+                                     for(String valeKey : valeKeys ){
+                                         String keyFiltStr = categorys[x]+"("+mapKey+valeKey+")";
+                                         for(String info : mapList){
+                                          if(info.indexOf(keyFiltStr)!=-1){
+                                             String value = "";
+                                             if("UP".equals(directs[y])){
+                                                 value = info.split(",")[3];
+                                                 if("P".equals(valeKey)){    //针对 P值截取数据的下标 为 2 或 1
+                                                     value = info.split(",")[2];
+                                                 }
+                                             }else{
+                                                 value = info.split(",")[2];
+                                                 if("P".equals(valeKey)){    //针对 P值截取数据的下标 为 2 或 1
+                                                     value = info.split(",")[1];
+                                                 }
+                                             }
+                                             //设置值
+                                             try {
+                                                 Field classFile = onLineData.getClass().getDeclaredField("measure"+valeKey);
+                                                 classFile.setAccessible(true);
+                                                 classFile.set(onLineData,value);
+                                             } catch (NoSuchFieldException e) {
+                                                 e.printStackTrace();
+                                             } catch (IllegalAccessException e) {
+                                                 e.printStackTrace();
+                                             }
+                                         }
+                                     }
+                                 }
+                                dataList.add(onLineData);
+                           }
+                      }
 
-            }
+                    if("F".equals(categorys[x])){//理论值
+                        //创建对像
+                        OnLineData onLineData = new OnLineData();
+                        onLineData.setMeasurePoint(mapKey);//设置测量点
+                        onLineData.setMeasureCategory(categorys[x]);//设置测量点
+                        onLineData = demoSetBaseInfo(onLineData,baseInfoMap); //设置基础信息
+
+                        String keyF = categorys[x]+"("+mapKey+")";
+                        for(String info : mapList){
+                            String[] values = info.split(",");
+                            if(info.indexOf(keyF)!=-1){
+                                onLineData.setMeasureX(values[2]);
+                                onLineData.setMeasureY(values[3]);
+                                onLineData.setMeasureZ(values[4]);
+                            }
+                        }
+                        dataList.add(onLineData);
+                    }
+                    if("TA".equals(categorys[x])) {//偏差
+                        //创建对像
+                        OnLineData onLineData = new OnLineData();
+                        onLineData.setMeasurePoint(mapKey);//设置测量点
+                        onLineData.setMeasureCategory(categorys[x]);//设置测量点
+                        onLineData = demoSetBaseInfo(onLineData,baseInfoMap); //设置基础信息
+
+                            for (String valeKey : valeKeys) {
+                                String keyFiltStr = categorys[x] + "(" + mapKey + valeKey + ")";
+                                for(String info : mapList){//当前测量点的数据
+                                 if (info.indexOf(keyFiltStr) != -1) {
+                                    String value = "";
+                                        value = info.split(",")[2];
+                                        if ("P".equals(valeKey)) {    //针对 P值截取数据的下标 为 2 或 1
+                                            value = info.split(",")[1];
+                                        }
+                                    //设置值
+                                    try {
+                                        Field classFile = onLineData.getClass().getDeclaredField("measure" + valeKey);
+                                        classFile.setAccessible(true);
+                                        classFile.set(onLineData, value);
+                                    } catch (NoSuchFieldException e) {
+                                        e.printStackTrace();
+                                    } catch (IllegalAccessException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                       }
+
+                        dataList.add(onLineData);
+
+                    }
+
+
+                }
+
         }
+
+        if(dataList.size()>0){
+
+        }
+
+        //数据拆分
+
+        //F(NRHKM0103_O_AA)   理论值  T(NRHKM0103_O_AAX)    TA(NRHKM0103_O_AAX)   TA(NRHKM0103_O_AAP)
+
+
+    }
+
+    private  OnLineData demoSetBaseInfo(OnLineData onLineData,Map<String,String> baseInfoMap){
+        String dateStr = ""; // 时间
+        //版本1
+        if(baseInfoMap.containsKey("DATE")){
+            dateStr =  dateStr.concat(baseInfoMap.get("DATE").replace("/","-"));
+        }
+        if(baseInfoMap.containsKey("TIME")){
+            dateStr=  dateStr.concat(" "+baseInfoMap.get("TIME"));
+        }
+
+        //版本2
+
+        onLineData.setMeasureTime(dateStr);//设置时间
+        return onLineData;
     }
 }

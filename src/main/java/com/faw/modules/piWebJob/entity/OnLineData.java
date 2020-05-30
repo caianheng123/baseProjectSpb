@@ -10,6 +10,7 @@
  */
 package com.faw.modules.piWebJob.entity;
 
+import com.faw.base.annotation.DemoFild;
 import com.faw.base.annotation.TxtFild;
 import com.faw.base.entity.IdEntity;
 import lombok.Data;
@@ -55,6 +56,7 @@ public class OnLineData extends IdEntity{
     private String measureTime;
 
     @TxtFild(value = "MODEL")
+    @DemoFild(value = "PV(AUTO)")
     private String model;
 
     @TxtFild(value = "FIXTURE")
@@ -63,17 +65,22 @@ public class OnLineData extends IdEntity{
     private String factory;
 
     @TxtFild(value = "GAUGE ID")
+    @DemoFild(value = "PR(PARTNM)")
     private String unitName;
 
     private String measurePoint;
 
-    private  String measureCategory;//方向
+    private  String measureCategory;//类别
+
+    private  String categoryDirect;//方向
 
     private String measureX;
 
     private String  measureY;
 
     private String  measureZ;
+
+    private String  measureP;
 
     private String  theoryX;
 
@@ -91,6 +98,13 @@ public class OnLineData extends IdEntity{
     private String reserve3;//预留字段1
 
     public void txtSetMeasureTime(){
-        this.measureTime = this.year+"-"+this.month+"-"+this.day+" "+this.hour+":"+this.minute+":"+this.seconds;
+        String hourStr="";
+        int hour = Integer.parseInt(this.hour);
+        if(hour<10){
+            hourStr = "0"+String.valueOf(hour);
+        }else{
+            hourStr = String.valueOf(hour);
+        }
+        this.measureTime = this.year+"-"+this.month+"-"+this.day+" "+hourStr+":"+this.minute+":"+this.seconds;
     }
 }

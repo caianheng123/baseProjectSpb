@@ -13,9 +13,11 @@
 		<result column="UNIT_NAME" property="unitName" />
 		<result column="MEASURE_POINT" property="measurePoint" />
 		<result column="MEASURE_CATEGORY" property="measureCategory" />
+		<result column="CATEGORY_DIRECT" property="categoryDirect" />
 		<result column="MEASURE_X" property="measureX" />
 		<result column="MEASURE_Y" property="measureY" />
 		<result column="MEASURE_Z" property="measureZ" />
+		<result column="MEASURE_P" property="measureP" />
 		<result column="THEORY_X" property="theoryX" />
 		<result column="THEORY_Y" property="theoryY" />
 		<result column="THEORY_Z" property="theoryZ" />
@@ -40,9 +42,11 @@
 		UNIT_NAME,
 		MEASURE_POINT,
 		MEASURE_CATEGORY,
+		CATEGORY_DIRECT,
 		MEASURE_X,
 		MEASURE_Y,
 		MEASURE_Z,
+		MEASURE_P,
 		THEORY_X,
 		THEORY_Y,
 		THEORY_Z,
@@ -65,9 +69,11 @@
 			#{item.unitName, jdbcType=VARCHAR},
 			#{item.measurePoint, jdbcType=VARCHAR},
 			#{item.measureCategory, jdbcType=VARCHAR},
+			#{item.categoryDirect, jdbcType=VARCHAR},
 			#{item.measureX, jdbcType=VARCHAR},
 			#{item.measureY, jdbcType=VARCHAR},
 			#{item.measureZ, jdbcType=VARCHAR},
+			#{item.measureP, jdbcType=VARCHAR},
 			#{item.theoryX, jdbcType=VARCHAR},
 			#{item.theoryY, jdbcType=VARCHAR},
 			#{item.theoryZ, jdbcType=VARCHAR},
