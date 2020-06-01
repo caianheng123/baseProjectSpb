@@ -1041,42 +1041,47 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
      */
 
 
-    public static List<HashMap<String,Object>> readDir(String path){
-        File file = new File(path);
+    public static List<HashMap<String,Object>> readDir(File file){
         File[] files =  new File[]{}; //定义文件夹内的 文件数组
+        List<HashMap<String,Object>> fileInfos =  new ArrayList<>();
         if(file.isDirectory()){
               files = file.listFiles();
+        }else{
+             fileInfos.add(fileReadLine(file));
         }
-        List<HashMap<String,Object>> fileInfos =  new ArrayList<>();
-        HashMap<String,Object> fileMap = null;
-
         if(ArrayUtils.isNotEmpty(files)){
             for(File f : files){
-                if(!f.isDirectory()){
-                    fileMap = new HashMap();
-                    String fileName = f.getName();
-                    String prefix="";
-                    if(fileName.contains(".")){
-                         prefix = fileName.substring(fileName.lastIndexOf("."));//如果想获得不带点的后缀，变为fileName.lastIndexOf(".")+1
-                    }
-                    int num=prefix.length();//得到后缀名长度
-                    String fileOtherName=fileName.substring(0, fileName.length()-num);//得到文件名。去掉了后缀
-
-                    fileMap.put("fileName",fileOtherName);
-                    fileMap.put("lineValues",resolveFile(f));
-                    fileInfos.add(fileMap);
-                }
+                fileInfos.add(fileReadLine(f));
             }
-
         }
         return fileInfos;
+    }
+
+    //存储 file 行信息的 及 文件名的map信息
+    private static HashMap fileReadLine(File file){
+        HashMap<String,Object> fileMap = new HashMap();
+        if(!file.isDirectory()){
+            String fileName = file.getName();
+            String prefix="";
+            if(fileName.contains(".")){
+                prefix = fileName.substring(fileName.lastIndexOf("."));//如果想获得不带点的后缀，变为fileName.lastIndexOf(".")+1
+            }
+            int num=prefix.length();//得到后缀名长度
+            String fileOtherName=fileName.substring(0, fileName.length()-num);//得到文件名。去掉了后缀
+
+            fileMap.put("fileName",fileOtherName);
+            fileMap.put("lineValues",resolveFile(file));
+
+        }
+        return fileMap;
     }
 
 
     public static List<String> resolveFile(File file){
         List<String> lineValues =  new ArrayList<>();
+        BufferedReader bufferedReader = null;
         try {
-            BufferedReader bufferedReader= new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+             bufferedReader= new BufferedReader(new InputStreamReader(new FileInputStream(file)));
             String tem=null;
             StringBuffer stringBuffer =new StringBuffer();
             while(true){
@@ -1112,8 +1117,9 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
             e.printStackTrace();
         }catch (IOException e) {
             e.printStackTrace();
+        }finally {
+            IOUtils.closeQuietly(bufferedReader);
         }
-
         return lineValues;
     }
     public static List<String> getFiles(String path) {

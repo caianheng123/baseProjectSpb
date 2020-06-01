@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -35,69 +36,69 @@ import java.util.regex.Pattern;
  */
 @Component("OnlineAnalysis")
 public class OnlineAnalysisImpl implements IOnlineAnalysis {
-    //txt数据文件夹
-    @Value("${abf.onlineData.dirPathTxt}")
-    private  String txtDir;
-
-    //demo数据文件夹
-    @Value("${abf.onlineData.dirPathDemo}")
-    private  String demoDir;
 
     @Autowired
     private OnlineDataDao onlineDataDao;
 
     //txt 格式文件分析
-    public  void  txtAnalysisRule(){
-        List<HashMap<String,Object>> results = 	FileUtils.readDir(txtDir);
-        for(HashMap m : results){ // 一个文件一个文件解析
-            //添加筛选的文件名 进行存储
+    public  void  txtAnalysisRule(File dirfile){
+        List<HashMap<String,Object>> results = 	FileUtils.readDir(dirfile);
+        //多个文件场景
+        HashMap<String,Object> file = new HashMap<>();
+        if( results.size() == 0){
+            return;
+        }
+        for(HashMap fileMap: results) { //
+            //获取指定的文件
+            file = fileMap;
 
-          ArrayList<String> lineVue = (ArrayList<String>) m.get("lineValues");
-            List<String []> clowns = new ArrayList<>();// 全部row信息
-            List<String []> values = new ArrayList<>();// 全部value信息
+            //解析逻辑
+            ArrayList<String> lineVue = (ArrayList<String>) file.get("lineValues");
+            List<String[]> clowns = new ArrayList<>();// 全部row信息
+            List<String[]> values = new ArrayList<>();// 全部value信息
             List<Set<String>> measurePoints = new ArrayList<>(); // 筛选测量点名
 
-          for(int x = 0 ; x < lineVue.size();x++){
-              if( x%2 == 0){ //clown
-                  String[]  rowArray =  lineVue.get(x).split("\t");
-                  clowns.add(rowArray);
-              }else{//value
-                  String[]  valueArray =  lineVue.get(x).split("\t");
-                  values.add(valueArray);
-              }
-          }
-          //匹配某个对象的正则  筛选出那些对象
+            for (int x = 0; x < lineVue.size(); x++) {
+                if (x % 2 == 0) { //clown
+                    String[] rowArray = lineVue.get(x).split("\t");
+                    clowns.add(rowArray);
+                } else {//value
+                    String[] valueArray = lineVue.get(x).split("\t");
+                    values.add(valueArray);
+                }
+            }
+            //匹配某个对象的正则  筛选出那些对象
             String patterObj = "^(D|B|A|LS|US|UR|LR|UT|LT)+\\s+\\S*\\s+(X|Y|Z)+$";
-            Pattern p= Pattern.compile(patterObj);
+            Pattern p = Pattern.compile(patterObj);
 
 
-            for(int x = 0;x< clowns.size();x++){
+            for (int x = 0; x < clowns.size(); x++) {
                 String[] recodeArray = clowns.get(x);
                 //循环所有的row信息 按空格分隔  不含空格的为 公共信息  含空格且长度为3第二项为车型
-                Set<String>  pointInfoSet = new HashSet<>();
+                Set<String> pointInfoSet = new HashSet<>();
 
-               for(int y = 0; y< recodeArray.length; y++){
-                   Matcher matcher =p.matcher(recodeArray[y]);
-                   if(matcher.find()){//匹配到具体obj
-                       String[] infoArr = recodeArray[y].split("\\s+");
-                       if(infoArr.length == 3){
-                           pointInfoSet.add(infoArr[1]);//车型
-                       }
-                   }
-               }
+                for (int y = 0; y < recodeArray.length; y++) {
+                    Matcher matcher = p.matcher(recodeArray[y]);
+                    if (matcher.find()) {//匹配到具体obj
+                        String[] infoArr = recodeArray[y].split("\\s+");
+                        if (infoArr.length == 3) {
+                            pointInfoSet.add(infoArr[1]);//车型
+                        }
+                    }
+                }
                 measurePoints.add(pointInfoSet);
             }
 
             //组合title和value map list
-            List<Map<String,String>> dataMapList = new ArrayList<>();
-            Map<String,String> dataMap = null;
-            for(int x=0; x< clowns.size() ; x++){
+            List<Map<String, String>> dataMapList = new ArrayList<>();
+            Map<String, String> dataMap = null;
+            for (int x = 0; x < clowns.size(); x++) {
                 String[] valueArr = values.get(x);
                 String[] clownArr = clowns.get(x);
 
                 dataMap = new HashMap();
-                for(int y=0; y < clownArr.length;y++){
-                    dataMap.put(String.valueOf(clownArr[y]),String.valueOf(valueArr[y]));
+                for (int y = 0; y < clownArr.length; y++) {
+                    dataMap.put(String.valueOf(clownArr[y]), String.valueOf(valueArr[y]));
                 }
                 dataMapList.add(dataMap);
             }
@@ -108,13 +109,13 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
             //1 根据测量点  循环clowns 获取指定的 clowns信息  在根据转向 分出要创建几个实例
             List<List<String>> objClowns = new ArrayList<>();
 
-            for( Set<String>  pointInfoSet :measurePoints){//获取测量点set
-                for(String clownStr : pointInfoSet){
+            for (Set<String> pointInfoSet : measurePoints) {//获取测量点set
+                for (String clownStr : pointInfoSet) {
                     List objClownList = new ArrayList();
-                    for(String [] clownArr : clowns){//循环所有clown
-                        for(String clown : clownArr){
+                    for (String[] clownArr : clowns) {//循环所有clown
+                        for (String clown : clownArr) {
                             //匹配筛选出的测量点
-                            if(clown.indexOf(clownStr)!=-1){
+                            if (clown.indexOf(clownStr) != -1) {
                                 objClownList.add(clown);
                             }
                         }
@@ -125,79 +126,82 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
             }
 
             //2 根据 objClowns 内的 数据 根据方向创建对象
-            for(List<String> clownObjs : objClowns){
+            for (List<String> clownObjs : objClowns) {
                 Set<String> directionSet = new HashSet<>();
-                for(String clown : clownObjs){//一个测量点
+                for (String clown : clownObjs) {//一个测量点
                     //根据空格拆分出方向
                     String[] objInfo = clown.split(" "); //测量点拆分出 方向 和
-                    if(objInfo.length > 0){
+                    if (objInfo.length > 0) {
                         String direction = objInfo[0];
                         directionSet.add(direction);
                     }
                 }
                 try {
-                        //循环测量类别
-                        for(String direction : directionSet){//一个方向创建一个对象
-                            OnLineData onLineData = new OnLineData();
-                            Field[] fields = onLineData.getClass().getDeclaredFields();
-                            for(Field field:fields){
-                                field.setAccessible(true);
-                                if(field.isAnnotationPresent(TxtFild.class)){ //将指定的key的值设置到对象上
-                                    TxtFild txtFild =   field.getAnnotation(TxtFild.class);
-                                    String key = txtFild.value();
-                                    for(Map<String,String> valMap:dataMapList){//存值的maplist
-                                        field.set(onLineData,valMap.get(key));
-                                    }
+                    //循环测量类别
+                    for (String direction : directionSet) {//一个方向创建一个对象
+                        OnLineData onLineData = new OnLineData();
+                        Field[] fields = onLineData.getClass().getDeclaredFields();
+                        for (Field field : fields) {
+                            field.setAccessible(true);
+                            if (field.isAnnotationPresent(TxtFild.class)) { //将指定的key的值设置到对象上
+                                TxtFild txtFild = field.getAnnotation(TxtFild.class);
+                                String key = txtFild.value();
+                                for (Map<String, String> valMap : dataMapList) {//存值的maplist
+                                    field.set(onLineData, valMap.get(key));
                                 }
                             }
-                            for(String clown : clownObjs) {//所有方向的key
-                                //设置 测量 x y z 值
-                                if(clown.split(" ")[0].indexOf(direction)!=-1){
-                                    //设置测量点
-                                    onLineData.setMeasurePoint(clown.substring(0,clown.lastIndexOf(" ")+1));
-                                    if(clown.indexOf("X") !=-1){ //取X轴信息
-                                        for(Map<String,String> valMap:dataMapList){//存值的maplist
-                                            onLineData.setMeasureX(valMap.get(clown));
-                                        }
-                                    }
-                                    if(clown.indexOf("Y") !=-1){ //取Y轴信息
-                                        for(Map<String,String> valMap:dataMapList){//存值的maplist
-                                            onLineData.setMeasureY(valMap.get(clown));
-                                        }
-                                    }
-                                    if(clown.indexOf("Z") !=-1){ //取Z轴信息
-                                        for(Map<String,String> valMap:dataMapList){//存值的maplist
-                                            onLineData.setMeasureZ(valMap.get(clown));
-                                        }
-                                    }
-                                }
-                            }
-                            //包含该方向
-                            onLineData.setMeasureCategory(direction);
-                            //设置测量时间
-                            onLineData.txtSetMeasureTime();
-                            onLineDatas.add(onLineData);
                         }
+                        for (String clown : clownObjs) {//所有方向的key
+                            //设置 测量 x y z 值
+                            if (clown.split(" ")[0].indexOf(direction) != -1) {
+                                //设置测量点
+                                onLineData.setMeasurePoint(clown.substring(0, clown.lastIndexOf(" ") + 1));
+                                if (clown.indexOf("X") != -1) { //取X轴信息
+                                    for (Map<String, String> valMap : dataMapList) {//存值的maplist
+                                        onLineData.setMeasureX(valMap.get(clown));
+                                    }
+                                }
+                                if (clown.indexOf("Y") != -1) { //取Y轴信息
+                                    for (Map<String, String> valMap : dataMapList) {//存值的maplist
+                                        onLineData.setMeasureY(valMap.get(clown));
+                                    }
+                                }
+                                if (clown.indexOf("Z") != -1) { //取Z轴信息
+                                    for (Map<String, String> valMap : dataMapList) {//存值的maplist
+                                        onLineData.setMeasureZ(valMap.get(clown));
+                                    }
+                                }
+                            }
+                        }
+                        //包含该方向
+                        onLineData.setMeasureCategory(direction);
+                        //设置测量时间
+                        onLineData.txtSetMeasureTime();
+                        onLineDatas.add(onLineData);
+                    }
 
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
             }
             //持久化到数据库
-            if(onLineDatas.size()>0){
+            if (onLineDatas.size() > 0) {
                 onlineDataDao.insertMyBatch(onLineDatas);
             }
         }
     }
     //demo 格式文件分析
-    public  void  demoAnalysisRule(){
-        List<HashMap<String,Object>> results = 	FileUtils.readDir(demoDir);
+    public  void  demoAnalysisRule(File dirfile){
+        List<HashMap<String,Object>> results = 	FileUtils.readDir(dirfile);
         //多个文件场景
         HashMap<String,Object> file = new HashMap<>();
+        if( results.size() == 0){
+            return;
+        }
         for(HashMap fileMap: results){
                 //获取指定的文件
             file = fileMap;
-        }
+
         ArrayList<String> lineValue = (ArrayList<String>) file.get("lineValues");
         Map<String,List<String>>  objectMap = new HashMap<>(); //存放对象
         String key = "";
@@ -261,7 +265,7 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                 objectMap.remove("R_PARTNM");
             }
             //版本2
-            if(objectMap.containsKey("R1")){//整体时间
+            if(objectMap.containsKey("R1")){//基础数据开头
                 baseInfos.addAll(objectMap.get("R1"));
                 objectMap.remove("R1");
             }
@@ -290,6 +294,13 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
         //实例化数据
         List<OnLineData> dataList = new ArrayList<>();
         for(String mapKey : objectMap.keySet()){
+            //末尾的数据统计 不处理  即 key 类似 R99
+            String rex = "^R[0-9]{2,}$";
+            Pattern p = Pattern.compile(rex);
+            Matcher matcher=p.matcher(mapKey);
+            if(matcher.find()){
+               break;
+            }
             List<String> mapList = objectMap.get(mapKey);
             String[] categorys = new String[]{"F","T","TA"};// F：理论值  T:公差    TA:偏差
             String[]  valeKeys = new String[]{"X","Y","Z","P"}; //
@@ -383,25 +394,20 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                                 }
                             }
                        }
-
                         dataList.add(onLineData);
-
                     }
-
-
                 }
-
         }
 
         if(dataList.size()>0){
-
+            onlineDataDao.insertMyBatch(dataList);
         }
 
         //数据拆分
 
         //F(NRHKM0103_O_AA)   理论值  T(NRHKM0103_O_AAX)    TA(NRHKM0103_O_AAX)   TA(NRHKM0103_O_AAP)
 
-
+        }
     }
 
     private  OnLineData demoSetBaseInfo(OnLineData onLineData,Map<String,String> baseInfoMap){

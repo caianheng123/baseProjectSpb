@@ -98,13 +98,20 @@ public class OnLineData extends IdEntity{
     private String reserve3;//预留字段1
 
     public void txtSetMeasureTime(){
-        String hourStr="";
-        int hour = Integer.parseInt(this.hour);
-        if(hour<10){
-            hourStr = "0"+String.valueOf(hour);
+        String monthStr="";
+        int month = Integer.parseInt(this.month);
+        if(month<10){
+            monthStr = "0"+String.valueOf(month);
         }else{
-            hourStr = String.valueOf(hour);
+            monthStr = String.valueOf(month);
         }
-        this.measureTime = this.year+"-"+this.month+"-"+this.day+" "+hourStr+":"+this.minute+":"+this.seconds;
+        String dayStr="";
+        int day = Integer.parseInt(this.day);
+        if(day<10){
+            dayStr = "0"+String.valueOf(day);
+        }else{
+            dayStr = String.valueOf(day);
+        }
+        this.measureTime = this.year+"-"+monthStr+"-"+dayStr+" "+this.hour+":"+this.minute+":"+this.seconds;
     }
 }
