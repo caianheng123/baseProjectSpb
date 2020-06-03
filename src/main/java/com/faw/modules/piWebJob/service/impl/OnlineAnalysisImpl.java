@@ -130,7 +130,7 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                 Set<String> directionSet = new HashSet<>();
                 for (String clown : clownObjs) {//一个测量点
                     //根据空格拆分出方向
-                    String[] objInfo = clown.split(" "); //测量点拆分出 方向 和
+                    String[] objInfo = clown.split(" "); //测量点 A NRSVV1305_R_AA Y 拆分出 方向 和  x y z
                     if (objInfo.length > 0) {
                         String direction = objInfo[0];
                         directionSet.add(direction);
@@ -154,8 +154,8 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                         for (String clown : clownObjs) {//所有方向的key
                             //设置 测量 x y z 值
                             if (clown.split(" ")[0].indexOf(direction) != -1) {
-                                //设置测量点
-                                onLineData.setMeasurePoint(clown.substring(0, clown.lastIndexOf(" ") + 1));
+                                //设置测量点  A NRSVV1305_R_AA Y   取中间部分
+                                onLineData.setMeasurePoint(clown.split(" ")[1]);
                                 if (clown.indexOf("X") != -1) { //取X轴信息
                                     for (Map<String, String> valMap : dataMapList) {//存值的maplist
                                         onLineData.setMeasureX(valMap.get(clown));
@@ -186,7 +186,7 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
             }
             //持久化到数据库
             if (onLineDatas.size() > 0) {
-                onlineDataDao.insertMyBatch(onLineDatas);
+               // onlineDataDao.insertMyBatch(onLineDatas);
             }
         }
     }
@@ -400,7 +400,7 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
         }
 
         if(dataList.size()>0){
-            onlineDataDao.insertMyBatch(dataList);
+           // onlineDataDao.insertMyBatch(dataList);
         }
 
         //数据拆分
@@ -419,6 +419,11 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
         if(baseInfoMap.containsKey("TIME")){
             dateStr=  dateStr.concat(" "+baseInfoMap.get("TIME"));
         }
+        if(baseInfoMap.containsKey("PS(KENN)")){
+            onLineData.setUnitName(baseInfoMap.get("PS(KENN)"));//设置零件名
+        }
+
+
 
         //版本2
 

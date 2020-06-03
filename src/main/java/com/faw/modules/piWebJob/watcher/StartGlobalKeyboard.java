@@ -1,16 +1,16 @@
 package com.faw.modules.piWebJob.watcher;
 
 import com.faw.modules.piWebJob.service.IOnlineAnalysis;
+import com.faw.utils.io.FileUtils;
+import com.faw.utils.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.util.List;
 
 @Component
 @Order(value = 1)
@@ -22,6 +22,10 @@ public class StartGlobalKeyboard implements CommandLineRunner {
     //demo数据文件夹
     @Value("${abf.onlineData.dirPathDemo}")
     private  String demoDir;
+
+    //首次启动标识
+    @Value("${abf.onlineData.firstStart}")
+    private  String firstStart;
 
     @Autowired
     private IOnlineAnalysis onlineAnalysis;
@@ -58,8 +62,23 @@ public class StartGlobalKeyboard implements CommandLineRunner {
     }
 
     public void  read (File file,String bustype) throws Exception {
-        //目标源文件夹  ip 是各个线程存放在不同的文件夹的名称
-        System.out.println(file.getAbsolutePath());
+
+        File fistStart = new File(firstStart);
+        if(fistStart.exists()){
+            List<String> lines = FileUtils.resolveFile(fistStart);
+            for(String s : lines){
+                if("first=1".equals(s)){
+                    //已经首次启动过了
+                    return;
+                }
+            }
+        }else{
+            if(fistStart.createNewFile()){
+                FileOutputStream fileOutputStream= new FileOutputStream(fistStart);
+                IOUtils.write("first=1".getBytes(),fileOutputStream);
+                fileOutputStream.close();
+            }
+        }
         File f = new File(file.getAbsolutePath());
         if("txt".equals(bustype)){
             onlineAnalysis.txtAnalysisRule(f);

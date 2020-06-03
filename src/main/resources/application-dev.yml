@@ -83,8 +83,10 @@ http:
 
 abf:
     log:
-                path: C:/Users/Administrator/Desktop/program/program/log
+                path: D:\piWebSchedule\logs
 
     onlineData:
                 dirPathTxt: D:\10.228.165.176
                 dirPathDemo: D:\10.228.165.209
+                logFile : D:\piWebSchedule\logFile.txt
+                firstStart : D:\piWebSchedule\firstStart

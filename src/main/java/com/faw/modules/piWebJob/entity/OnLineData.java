@@ -82,12 +82,6 @@ public class OnLineData extends IdEntity{
 
     private String  measureP;
 
-    private String  theoryX;
-
-    private String  theoryY;
-
-    private String  theoryZ;
-
     private String justNo;  //钢号
 
 
