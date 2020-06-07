@@ -9,5 +9,5 @@ public interface IOnlineAnalysis {
 
     public void  txtAnalysisRule(File file);
 
-    public void  demoAnalysisRule(File file);
+    public void  demoAnalysisRule(File file,String car);
 }

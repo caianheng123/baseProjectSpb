@@ -191,7 +191,7 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
         }
     }
     //demo 格式文件分析
-    public  void  demoAnalysisRule(File dirfile){
+    public  void  demoAnalysisRule(File dirfile,String car){
         List<HashMap<String,Object>> results = 	FileUtils.readDir(dirfile);
         //多个文件场景
         HashMap<String,Object> file = new HashMap<>();
@@ -290,6 +290,10 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
             String value = basInfoArr[1].replaceAll("'","");
             baseInfoMap.put(basInfoArr[0],value);
         }
+        //设置车型信息
+            if(car!=null){
+                baseInfoMap.put("carModel",car);//
+            }
 
         //实例化数据
         List<OnLineData> dataList = new ArrayList<>();
@@ -400,7 +404,7 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
         }
 
         if(dataList.size()>0){
-           // onlineDataDao.insertMyBatch(dataList);
+            //onlineDataDao.insertMyBatch(dataList);
         }
 
         //数据拆分
@@ -422,7 +426,10 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
         if(baseInfoMap.containsKey("PS(KENN)")){
             onLineData.setUnitName(baseInfoMap.get("PS(KENN)"));//设置零件名
         }
-
+        //设置车型
+        if(baseInfoMap.containsKey("carModel")){
+            onLineData.setModel(baseInfoMap.get("carModel"));//设置车型
+        }
 
 
         //版本2

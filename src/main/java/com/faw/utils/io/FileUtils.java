@@ -1140,4 +1140,46 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
         return files;
     }
 
+    public static void copy(File sourceFile,File targetDirFile) throws IOException { //复制文件的方法！
+        if(!targetDirFile.exists()){
+            targetDirFile.mkdir();
+        }
+        if(sourceFile.isDirectory()){//路径e79fa5e98193e59b9ee7ad9431333332616430判断，是路径还是单个的文件
+            File[] cf = sourceFile.listFiles();
+            System.out.println("length" + cf.length);
+            System.out.println("length2" + sourceFile.length());
+            for(File fn : cf){
+                if(fn.isFile()){
+                    FileInputStream fis = new FileInputStream(fn);
+                    FileOutputStream fos = new FileOutputStream(targetDirFile + "\\" +fn.getName());
+                    byte[] b = new byte[1024];
+                    int i = fis.read(b);
+                    while(i != -1){
+                        fos.write(b, 0, i);
+                        i = fis.read(b);
+                    }
+                    fis.close();
+                    fos.close();
+                }else{
+                    File fb = new File(targetDirFile + "\\" + fn.getName());
+                    fb.mkdir();
+                    if(fn.listFiles() != null){//如果有子目录递归复制子目录！
+                        copy(fn,fb);
+                    }
+                }
+            }
+        }else{
+            FileInputStream fis = new FileInputStream(sourceFile);
+            FileOutputStream fos = new FileOutputStream(targetDirFile + "\\" +sourceFile.getName());
+            byte[] b = new byte[1024];
+            int i = fis.read(b);
+            while(i != -1){
+                fos.write(b, 0, i);
+                i = fis.read(b);
+            }
+            fis.close();
+            fos.close();
+        }
+    }
+
 }

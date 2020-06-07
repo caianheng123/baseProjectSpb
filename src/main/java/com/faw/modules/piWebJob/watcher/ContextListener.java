@@ -1,6 +1,7 @@
 package com.faw.modules.piWebJob.watcher;
 
 import com.faw.modules.piWebJob.service.IOnlineAnalysis;
+import com.faw.utils.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
@@ -19,21 +20,35 @@ public class ContextListener implements ServletContextListener {
     //txt数据文件夹
     @Value("${abf.onlineData.dirPathTxt}")
     private String txtDir;
+    //demo数据文件夹  车型1
+    @Value("${abf.onlineData.dirPathDemo.mode1Dir}")
+    private String demo1Dir;
 
-    //demo数据文件夹
-    @Value("${abf.onlineData.dirPathDemo}")
-    private String demoDir;
+    //demo数据文件夹  车型2
+    @Value("${abf.onlineData.dirPathDemo.mode2Dir}")
+    private String demo2Dir;
 
     //数据抽取日志输出文件夹
     @Value("${abf.onlineData.logFile}")
     private String logFilePath;
+
+    //共享文件夹
+    @Value("${abf.onlineData.sharedTxtFile}")
+    private String shareTxtDir;
+
+    @Value("${abf.onlineData.sharedDemoFile.model1Dir}")
+    private String shareDemo1Dir;
+
+    @Value("${abf.onlineData.sharedDemoFile.model2Dir}")
+    private String shareDemo2Dir;
+
 
 
     @Autowired
     private IOnlineAnalysis onlineAnalysis;
 
     //设置个线程池
-    private ExecutorService service = Executors.newSingleThreadExecutor(); //线程池
+    private ExecutorService service = Executors.newSingleThreadExecutor(); // 线程池
 
     //设置个阻塞队列
     public static BlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(1024 * 1024);
@@ -45,7 +60,11 @@ public class ContextListener implements ServletContextListener {
         System.out.println("===========================MyServletContextListener初始化");
 
         final File txtFile = new File(txtDir);
-        final File demoFile = new File(demoDir);
+        final File demo1File = new File(demo1Dir);
+        final File demo2File = new File(demo2Dir);
+        final File shareTxtFile = new File(shareTxtDir);//共享文件夹 txt
+        final File shareDemo1File = new File(shareDemo1Dir); //共享文件夹 demo 车型1
+        final File shareDemo2File = new File(shareDemo2Dir); //共享文件夹 demo 车型2
         final File logFile = new File(logFilePath);
         if (!logFile.exists()) {
             try {
@@ -56,7 +75,7 @@ public class ContextListener implements ServletContextListener {
         }
         new WriteLogThread(queue, logFile).start();//日志线程
 
-        //检测txt文件夹的 线程
+       //检测txt文件夹的 线程
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -94,18 +113,18 @@ public class ContextListener implements ServletContextListener {
             }
         }).start();
 
-        //检测demo文件夹的 线程
+        //检测demo1 车型1 文件夹的 线程
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    new WatchDir(demoFile, true, new FileActionCallback() {
+                    new WatchDir(demo1File, true, new FileActionCallback() {
                         @Override
                         public void create(File file2) {
                             System.out.println("文件已创建\t" + file2.getAbsolutePath());
                             //onlineAnalysis.demoAnalysisRule(file2);//数据抽取到 oracle
                             //创建业务线程
-                            OnlineDataBusThread task2 =  new OnlineDataBusThread(file2,queue,"demo",onlineAnalysis);//监听线程1
+                            OnlineDataBusThread task2 =  new OnlineDataBusThread(file2,queue,"demoCar1",onlineAnalysis);//监听线程1
                             Future<?> future = service.submit(task2);//开启该线程
                             try {
                                 future.get();// 结果
@@ -132,8 +151,197 @@ public class ContextListener implements ServletContextListener {
             }
         }).start();
 
+        //检测demo2 车型2 文件夹的 线程
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    new WatchDir(demo2File, true, new FileActionCallback() {
+                        @Override
+                        public void create(File file2) {
+                            System.out.println("文件已创建\t" + file2.getAbsolutePath());
+                            //onlineAnalysis.demoAnalysisRule(file2);//数据抽取到 oracle
+                            //创建业务线程
+                            OnlineDataBusThread task2 =  new OnlineDataBusThread(file2,queue,"demoCar2",onlineAnalysis);//监听线程1
+                            Future<?> future = service.submit(task2);//开启该线程
+                            try {
+                                future.get();// 结果
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            } catch (ExecutionException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        @Override
+                        public void delete(File file2) {
+                            System.out.println("文件已删除\t" + file2.getAbsolutePath());
+                            //删除操作的 业务
+                        }
+                        @Override
+                        public void modify(File file2) {
+                            System.out.println("文件已修改\t" + file2.getAbsolutePath());
+                            //修改操作的 业务
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+        //检测demo1 车型1 文件夹的 线程
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    new WatchDir(demo1File, true, new FileActionCallback() {
+                        @Override
+                        public void create(File file2) {
+                            System.out.println("文件已创建\t" + file2.getAbsolutePath());
+                            //onlineAnalysis.demoAnalysisRule(file2);//数据抽取到 oracle
+                            //创建业务线程
+                            OnlineDataBusThread task2 =  new OnlineDataBusThread(file2,queue,"demoCar1",onlineAnalysis);//监听线程1
+                            Future<?> future = service.submit(task2);//开启该线程
+                            try {
+                                future.get();// 结果
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            } catch (ExecutionException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        @Override
+                        public void delete(File file2) {
+                            System.out.println("文件已删除\t" + file2.getAbsolutePath());
+                            //删除操作的 业务
+                        }
+                        @Override
+                        public void modify(File file2) {
+                            System.out.println("文件已修改\t" + file2.getAbsolutePath());
+                            //修改操作的 业务
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+        //检测共享文件 txt 文件夹的 线程
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    new WatchDir(shareTxtFile, true, new FileActionCallback() {
+                        @Override
+                        public void create(File file) {
+                            System.out.println("文件已创建\t" + file.getAbsolutePath());
+                        }
+                        @Override
+                        public void delete(File file2) {
+                            System.out.println("文件已删除\t" + file2.getAbsolutePath());
+                            //删除操作的 业务
+                        }
+                        @Override
+                        public void modify(File file) {
+                            System.out.println("文件已修改\t" + file.getAbsolutePath());
+                            //修改操作的 业务
+                            //创建业务线程
+                            ShareFileCopeThread task =  new ShareFileCopeThread(file,txtDir,queue,"Txt");//监听线程1
+                            Future<?> future = service.submit(task);//开启该线程
+                            try {
+                                future.get();// 结果
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            } catch (ExecutionException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+        //检测共享文件 demo 车型2 文件夹的 线程
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    new WatchDir(shareDemo1File, true, new FileActionCallback() {
+                        @Override
+                        public void create(File file) {
+                            System.out.println("文件已创建\t" + file.getAbsolutePath());
+                        }
+                        @Override
+                        public void delete(File file2) {
+                            System.out.println("文件已删除\t" + file2.getAbsolutePath());
+                            //删除操作的 业务
+                        }
+                        @Override
+                        public void modify(File file) {
+                            System.out.println("文件已修改\t" + file.getAbsolutePath());
+                            //修改操作的 业务
+                            //创建业务线程
+                            ShareFileCopeThread task =  new ShareFileCopeThread(file,demo1Dir,queue,"demoCar1");//监听线程1
+                            Future<?> future = service.submit(task);//开启该线程
+                            try {
+                                future.get();// 结果
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            } catch (ExecutionException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+        //检测共享文件 demo 车型1 文件夹的 线程
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    new WatchDir(shareDemo2File, true, new FileActionCallback() {
+                        @Override
+                        public void create(File file) {
+                            System.out.println("文件已创建\t" + file.getAbsolutePath());
+                        }
+                        @Override
+                        public void delete(File file2) {
+                            System.out.println("文件已删除\t" + file2.getAbsolutePath());
+                            //删除操作的 业务
+                        }
+                        @Override
+                        public void modify(File file) {
+                            System.out.println("文件已修改\t" + file.getAbsolutePath());
+                            //修改操作的 业务
+                            //创建业务线程
+                            ShareFileCopeThread task =  new ShareFileCopeThread(file,demo2Dir,queue,"demoCar2");//监听线程1
+                            Future<?> future = service.submit(task);//开启该线程
+                            try {
+                                future.get();// 结果
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            } catch (ExecutionException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
         System.out.println("正在监视文件夹:" + txtFile.getAbsolutePath());
-        System.out.println("正在监视文件夹2:" + demoFile.getAbsolutePath());
+        System.out.println("正在监视文件夹2:" + demo1File.getAbsolutePath());
+        System.out.println("正在监视文件夹3:" + demo2File.getAbsolutePath());
+        System.out.println("正在监视共享文件夹1:" + shareTxtFile.getAbsolutePath());
+        System.out.println("正在监视共享文件夹2:" + shareDemo1File.getAbsolutePath());
+        System.out.println("正在监视共享文件夹3:" + shareDemo2File.getAbsolutePath());
     }
 
     @Override
@@ -141,56 +349,38 @@ public class ContextListener implements ServletContextListener {
         System.out.println("===========================MyServletContextListener销毁");
     }
 
-    public void write(String targetDir, File file) throws Exception {
-        //目标源文件夹  ip 是各个线程存放在不同的文件夹的名称
-        System.out.println(file.getAbsolutePath());
-        File f = new File(file.getAbsolutePath());
-        String path = "D:\\" + targetDir;
-        File f1 = new File(path);
-        copy(f, f1); //将 f -> f1
-        System.out.println("复制成功");
-    }
 
-    public void copy(File f, File f1) throws IOException { //复制文件的方法！
-        if (!f1.exists()) {
-            f1.mkdir();
+}
+
+class ShareFileCopeThread implements Runnable {
+    private File file;//被监听测到的文件
+    private String toPath;//输出到那个文件夹
+    private String business; //检测的什么共享数据
+    private BlockingQueue<byte[]> buffer;
+
+    public ShareFileCopeThread(File file,String toPath,BlockingQueue<byte[]> buffer,String business ){
+        this.file = file;
+        this.toPath = toPath;
+        this.buffer = buffer;
+        this.business = business;
+    }
+    public void run() {
+        //创建业务操作的 业务
+      String outLog = business+"ShareFile="+file.getName()+"|";
+        try {
+            buffer.put(outLog.getBytes());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        if (!f1.exists()) {//路径e79fa5e98193e59b9ee7ad9431333332616430判断，是路径还是单个的文件
-            File[] cf = f.listFiles();
-            for (File fn : cf) {
-                if (fn.isFile()) {
-                    FileInputStream fis = new FileInputStream(fn);
-                    FileOutputStream fos = new FileOutputStream(f1 + "\\" + fn.getName());
-                    byte[] b = new byte[1024];
-                    int i = fis.read(b);
-                    while (i != -1) {
-                        fos.write(b, 0, i);
-                        i = fis.read(b);
-                    }
-                    fis.close();
-                    fos.close();
-                } else {
-                    File fb = new File(f1 + "\\" + fn.getName());
-                    fb.mkdir();
-                    if (fn.listFiles() != null) {//如果有子目录递归复制子目录！
-                        copy(fn, fb);
-                    }
-                }
-            }
-        } else {
-            FileInputStream fis = new FileInputStream(f);
-            FileOutputStream fos = new FileOutputStream(f1 + "\\" + f.getName());
-            byte[] b = new byte[1024];
-            int i = fis.read(b);
-            while (i != -1) {
-                fos.write(b, 0, i);
-                i = fis.read(b);
-            }
-            fis.close();
-            fos.close();
+
+        try {
+         FileUtils.copy(file,new File(toPath));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
+
 
 class OnlineDataBusThread implements Runnable {
     private BlockingQueue<byte[]> buffer;
@@ -218,10 +408,14 @@ class OnlineDataBusThread implements Runnable {
             e.printStackTrace();
         }
         //业务
-        if (business != null && "demo".equals(business)) {
-            onlineAnalysis.demoAnalysisRule(file);//数据抽取到 oracle
+        if (business != null && "demoCar1".equals(business)) {
+            onlineAnalysis.demoAnalysisRule(file,"car1");//数据抽取到 oracle
 
-        } else if (business != null && "txt".equals(business)) {
+        } else  if (business != null && "demoCar2".equals(business)) {
+            onlineAnalysis.demoAnalysisRule(file, "car2");//数据抽取到 oracle
+
+        }
+        else if (business != null && "txt".equals(business)) {
             onlineAnalysis.txtAnalysisRule(file);//数据抽取到 oracle
         }
 

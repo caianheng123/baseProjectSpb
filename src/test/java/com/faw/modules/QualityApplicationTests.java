@@ -81,7 +81,7 @@ public class QualityApplicationTests {
 	@Test
 	public void fileReadTest(){
 
-		onlineAnalysis.demoAnalysisRule(new File("F:\\aa"));
+		//onlineAnalysis.demoAnalysisRule(new File("F:\\aa"),"car1");
 	}
 
 	@Test

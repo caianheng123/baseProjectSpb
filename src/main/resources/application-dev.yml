@@ -87,6 +87,12 @@ abf:
 
     onlineData:
                 dirPathTxt: D:\10.228.165.176
-                dirPathDemo: D:\10.228.165.209
+                dirPathDemo:
+                  mode1Dir : D:\10.228.165.209\aw1
+                  mode2Dir : D:\10.228.165.209\aw2
                 logFile : D:\piWebSchedule\logFile.txt
                 firstStart : D:\piWebSchedule\firstStart
+                sharedTxtFile : D:\txt
+                sharedDemoFile :
+                  model1Dir : D:\demo\aw1
+                  model2Dir : D:\demo\aw2
