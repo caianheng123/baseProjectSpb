@@ -151,8 +151,8 @@ public class ContextListener implements ServletContextListener {
             }
         }).start();
 
-        //检测demo2 车型2 文件夹的 线程
-        new Thread(new Runnable() {
+        //检测demo2 车型2 文件夹的 线程  暂时关闭
+      /*  new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -187,44 +187,8 @@ public class ContextListener implements ServletContextListener {
                     e.printStackTrace();
                 }
             }
-        }).start();
-        //检测demo1 车型1 文件夹的 线程
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    new WatchDir(demo1File, true, new FileActionCallback() {
-                        @Override
-                        public void create(File file2) {
-                            System.out.println("文件已创建\t" + file2.getAbsolutePath());
-                            //onlineAnalysis.demoAnalysisRule(file2);//数据抽取到 oracle
-                            //创建业务线程
-                            OnlineDataBusThread task2 =  new OnlineDataBusThread(file2,queue,"demoCar1",onlineAnalysis);//监听线程1
-                            Future<?> future = service.submit(task2);//开启该线程
-                            try {
-                                future.get();// 结果
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            } catch (ExecutionException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        @Override
-                        public void delete(File file2) {
-                            System.out.println("文件已删除\t" + file2.getAbsolutePath());
-                            //删除操作的 业务
-                        }
-                        @Override
-                        public void modify(File file2) {
-                            System.out.println("文件已修改\t" + file2.getAbsolutePath());
-                            //修改操作的 业务
-                        }
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+        }).start();*/
+
 
         //检测共享文件 txt 文件夹的 线程
         new Thread(new Runnable() {
@@ -300,8 +264,8 @@ public class ContextListener implements ServletContextListener {
             }
         }).start();
 
-        //检测共享文件 demo 车型1 文件夹的 线程
-        new Thread(new Runnable() {
+        //检测共享文件 demo 车型1 文件夹的 线程  //暂时关闭
+/*        new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -335,13 +299,13 @@ public class ContextListener implements ServletContextListener {
                     e.printStackTrace();
                 }
             }
-        }).start();
+        }).start();*/
         System.out.println("正在监视文件夹:" + txtFile.getAbsolutePath());
         System.out.println("正在监视文件夹2:" + demo1File.getAbsolutePath());
-        System.out.println("正在监视文件夹3:" + demo2File.getAbsolutePath());
+        //System.out.println("正在监视文件夹3:" + demo2File.getAbsolutePath());
         System.out.println("正在监视共享文件夹1:" + shareTxtFile.getAbsolutePath());
         System.out.println("正在监视共享文件夹2:" + shareDemo1File.getAbsolutePath());
-        System.out.println("正在监视共享文件夹3:" + shareDemo2File.getAbsolutePath());
+        //System.out.println("正在监视共享文件夹3:" + shareDemo2File.getAbsolutePath());
     }
 
     @Override
@@ -409,7 +373,7 @@ class OnlineDataBusThread implements Runnable {
         }
         //业务
         if (business != null && "demoCar1".equals(business)) {
-            onlineAnalysis.demoAnalysisRule(file,"car1");//数据抽取到 oracle
+            onlineAnalysis.demoAnalysisRule(file,"b8I");//数据抽取到 oracle
 
         } else  if (business != null && "demoCar2".equals(business)) {
             onlineAnalysis.demoAnalysisRule(file, "car2");//数据抽取到 oracle

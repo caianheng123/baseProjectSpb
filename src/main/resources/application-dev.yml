@@ -88,11 +88,11 @@ abf:
     onlineData:
                 dirPathTxt: D:\10.228.165.176
                 dirPathDemo:
-                  mode1Dir : D:\10.228.165.209\aw1
-                  mode2Dir : D:\10.228.165.209\aw2
+                  mode1Dir : D:\10.228.165.209\b8I
+                  mode2Dir : D:\10.228.165.209\b8I
                 logFile : D:\piWebSchedule\logFile.txt
                 firstStart : D:\piWebSchedule\firstStart
-                sharedTxtFile : D:\txt
+                sharedTxtFile : \\\\10.228.165.209\onlinedata
                 sharedDemoFile :
-                  model1Dir : D:\demo\aw1
-                  model2Dir : D:\demo\aw2
+                  model1Dir : \\\\10.228.165.176\b8I
+                  model2Dir : \\\\10.228.165.176\b8I

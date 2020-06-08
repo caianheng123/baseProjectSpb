@@ -186,7 +186,7 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
             }
             //持久化到数据库
             if (onLineDatas.size() > 0) {
-               // onlineDataDao.insertMyBatch(onLineDatas);
+                onlineDataDao.insertMyBatch(onLineDatas);
             }
         }
     }
@@ -404,7 +404,7 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
         }
 
         if(dataList.size()>0){
-            //onlineDataDao.insertMyBatch(dataList);
+            onlineDataDao.insertMyBatch(dataList);
         }
 
         //数据拆分

@@ -100,7 +100,8 @@ public class StartGlobalKeyboard implements CommandLineRunner {
                 }
             }
         }).start();
-        new Thread(new Runnable() {
+        //暂时废弃文件夹2
+     /*   new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -109,7 +110,7 @@ public class StartGlobalKeyboard implements CommandLineRunner {
                     e.printStackTrace();
                 }
             }
-        }).start();
+        }).start();*/
 
         //文件解析业务
         new Thread(new Runnable() {
@@ -134,7 +135,8 @@ public class StartGlobalKeyboard implements CommandLineRunner {
             }
         }).start();
 
-        new Thread(new Runnable() {
+        //暂时关闭
+      /*  new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -143,7 +145,7 @@ public class StartGlobalKeyboard implements CommandLineRunner {
                     e.printStackTrace();
                 }
             }
-        }).start();
+        }).start();*/
 
 
     }
@@ -161,7 +163,7 @@ public class StartGlobalKeyboard implements CommandLineRunner {
         if("txt".equals(bustype)){
             onlineAnalysis.txtAnalysisRule(f);
         }else if("demoCar1".equals(bustype)){
-            onlineAnalysis.demoAnalysisRule(f,"car1");
+            onlineAnalysis.demoAnalysisRule(f,"b8I");
         }else if("demoCar2".equals(bustype)){
             onlineAnalysis.demoAnalysisRule(f,"car2");
         }
