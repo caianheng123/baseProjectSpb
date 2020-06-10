@@ -106,6 +106,29 @@ public class OnLineData extends IdEntity{
         }else{
             dayStr = String.valueOf(day);
         }
-        this.measureTime = this.year+"-"+monthStr+"-"+dayStr+" "+this.hour+":"+this.minute+":"+this.seconds;
+        String hourStr="";
+        int hour = Integer.parseInt(this.hour);
+        if(hour<10){
+            hourStr = "0"+String.valueOf(hour);
+        }else{
+            hourStr = String.valueOf(hour);
+        }
+
+        String minuteStr="";
+        int minute = Integer.parseInt(this.minute);
+        if(minute<10){
+            minuteStr = "0"+String.valueOf(minute);
+        }else{
+            minuteStr = String.valueOf(minute);
+        }
+
+        String secondsStr="";
+        int second = Integer.parseInt(this.seconds);
+        if(second<10){
+            secondsStr = "0"+String.valueOf(second);
+        }else{
+            secondsStr = String.valueOf(second);
+        }
+        this.measureTime = this.year+"-"+monthStr+"-"+dayStr+" "+hourStr+":"+minuteStr+":"+secondsStr;
     }
 }
