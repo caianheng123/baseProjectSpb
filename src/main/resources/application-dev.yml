@@ -83,16 +83,45 @@ http:
 
 abf:
     log:
-                path: D:\piWebSchedule\logs
-
-    onlineData:
-                dirPathTxt: D:\10.228.165.176
-                dirPathDemo:
-                  mode1Dir : D:\10.228.165.209\b8I
-                  mode2Dir : D:\10.228.165.209\b8I
-                logFile : D:\piWebSchedule\logFile.txt
-                firstStart : D:\piWebSchedule\firstStart
-                sharedTxtFile : \\\\10.228.165.209\onlinedata
-                sharedDemoFile :
-                  model1Dir : \\\\10.228.165.176\b8I
-                  model2Dir : \\\\10.228.165.176\b8I
+       logFile : D:\piWebSchedule\logFile.txt
+       firstStart : D:\piWebSchedule\firstStart
+       path: D:\piWebSchedule\logs
+       onlinedata:
+        dirPathTxt: D:\piWebSchedule\onlineData\txt
+        dirPathDemo:
+          mode1Dir : D:\piWebSchedule\onlineData\demo\B8L
+          mode2Dir : D:\piWebSchedule\onlineData\demo\CCFB
+          mode3Dir : D:\piWebSchedule\onlineData\demo\CCSB
+        sharedTxtFile :
+          txtDir1 : \\\\10.228.165.206\onlinedata
+          txtDir2 : \\\\10.228.165.209\onlinedata
+          txtDir3 : \\\\10.228.165.221\onlinedata
+        sharedDemoFile :
+          model1Dir1 : \\\\10.228.165.173\Export\B8L
+          model1Dir2 : \\\\10.228.165.178\Export\B8L
+          model2Dir1 : \\\\10.228.165.173\Export\CCFB
+          model2Dir2 : \\\\10.228.165.178\Export\CCFB
+          model3Dir1 : \\\\10.228.165.173\Export\CCSB
+          model3Dir2 : \\\\10.228.165.178\Export\CCSB
+onlinedata:
+    dirobj :
+        targetmap : {
+          txt : 'd:\piWebSchedule\onlineData\txt',
+          demoB8L : 'd:\piWebSchedule\onlineData\demo\B8L',
+          demoCCFB : 'd:\piWebSchedule\onlineData\demo\CCFB',
+          demoCCSB : 'd:\piWebSchedule\onlineData\demo\CCSB'
+        }
+        sharemaplist:
+            txt:
+              - '\\\\10.228.165.206\onlinedata'
+              - '\\\\10.228.165.209\onlinedata'
+              - '\\\\10.228.165.211\onlinedata'
+            demoB8L:
+              - '\\\\10.228.165.173\Export\B8L'
+              - '\\\\10.228.165.178\Export\B8L'
+            demoCCFB:
+              - '\\\\10.228.165.173\Export\CCFB'
+              - '\\\\10.228.165.178\Export\CCFB'
+            demoCCSB:
+              - '\\\\10.228.165.173\Export\CCSB'
+              - '\\\\10.228.165.178\Export\CCSB'

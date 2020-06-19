@@ -12,9 +12,11 @@ package com.faw.modules.piWebJob.service.impl;
 
 import com.faw.base.annotation.TxtFild;
 import com.faw.modules.piWebJob.dao.OnlineDataDao;
+import com.faw.modules.piWebJob.dao.PiwebCarInfoDao;
 import com.faw.modules.piWebJob.entity.OnLineData;
 import com.faw.modules.piWebJob.service.IOnlineAnalysis;
 import com.faw.utils.io.FileUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.hadoop.util.hash.Hash;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,8 +42,15 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
     @Autowired
     private OnlineDataDao onlineDataDao;
 
+    @Autowired
+    private PiwebCarInfoDao piwebCarInfoDao;
+
     //txt 格式文件分析
     public  void  txtAnalysisRule(File dirfile){
+        String fileName = dirfile.getName();
+        if(!fileName.endsWith("txt")){
+            return;
+        }
         List<HashMap<String,Object>> results = 	FileUtils.readDir(dirfile);
         //多个文件场景
         HashMap<String,Object> file = new HashMap<>();
@@ -97,7 +106,9 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                 String[] clownArr = clowns.get(x);
 
                 dataMap = new HashMap();
-                for (int y = 0; y < clownArr.length; y++) {
+                int size = clownArr.length < valueArr.length ? clownArr.length : valueArr.length;
+
+                for (int y = 0; y < size; y++) {
                     dataMap.put(String.valueOf(clownArr[y]), String.valueOf(valueArr[y]));
                 }
                 dataMapList.add(dataMap);
@@ -177,6 +188,11 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                         onLineData.setMeasureCategory(direction);
                         //设置测量时间
                         onLineData.txtSetMeasureTime();
+                        //设置车型
+                        onLineData.setModel(onLineData.getUnitName().split("_")[0]);
+                        //设置钢号
+                        onLineData.setJustNo(onLineData.getPartId().substring(onLineData.getPartId().length()-8));
+
                         onLineDatas.add(onLineData);
                     }
 
@@ -184,14 +200,29 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                     e.printStackTrace();
                 }
             }
+            //查询车车型基础信息 适配工厂
+            List<HashMap<String,Object>>  carInfos = piwebCarInfoDao.queryCarInfo();
             //持久化到数据库
             if (onLineDatas.size() > 0) {
+                for(OnLineData onLineData:onLineDatas){
+                    for(HashMap<String,Object> carInfo : carInfos){
+                        String[] alisaNames = carInfo.get("CAR_ALIAS_NAME").toString().split(",");
+                        if(ArrayUtils.contains(alisaNames, onLineData.getModel())){
+                            onLineData.setFactory(carInfo.get("FACTORY").toString());
+                        }
+
+                    }
+                }
                 onlineDataDao.insertMyBatch(onLineDatas);
             }
         }
     }
     //demo 格式文件分析
-    public  void  demoAnalysisRule(File dirfile,String car){
+    public  void  demoAnalysisRule(File dirfile){
+        String fileName = dirfile.getName();
+        if(!fileName.endsWith("dmo")){
+            return;
+        }
         List<HashMap<String,Object>> results = 	FileUtils.readDir(dirfile);
         //多个文件场景
         HashMap<String,Object> file = new HashMap<>();
@@ -247,23 +278,6 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
         List<String> baseInfos = new ArrayList<>();
 
         if(objectMap.size()>0){
-            //版本1
-            if(objectMap.containsKey("R_DATE")){
-                baseInfos.addAll(objectMap.get("R_DATE"));
-                objectMap.remove("R_DATE");
-            }
-            if(objectMap.containsKey("R_TIME")){
-                baseInfos.addAll(objectMap.get("R_TIME"));
-                objectMap.remove("R_TIME");
-            }
-            if(objectMap.containsKey("R_AUTO")){//车型
-                baseInfos.addAll(objectMap.get("R_AUTO"));
-                objectMap.remove("R_AUTO");
-            }
-            if(objectMap.containsKey("R_PARTNM")){//零件名
-                baseInfos.addAll(objectMap.get("R_PARTNM"));
-                objectMap.remove("R_PARTNM");
-            }
             //版本2
             if(objectMap.containsKey("R1")){//基础数据开头
                 baseInfos.addAll(objectMap.get("R1"));
@@ -273,13 +287,6 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                 baseInfos.addAll(objectMap.get("DATE_TIME"));
                 objectMap.remove("DATE_TIME");
             }
-            //不解析的信息
-            objectMap.remove("R_CP");
-            objectMap.remove("R_TYP");
-            objectMap.remove("R_MPTYP");
-            objectMap.remove("R_MACHINE");
-            objectMap.remove("R_TEILID");
-            objectMap.remove("R_Operator");
         }
 
         //基础数据map处理
@@ -290,11 +297,6 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
             String value = basInfoArr[1].replaceAll("'","");
             baseInfoMap.put(basInfoArr[0],value);
         }
-        //设置车型信息
-            if(car!=null){
-                baseInfoMap.put("carModel",car);//
-            }
-
         //实例化数据
         List<OnLineData> dataList = new ArrayList<>();
         for(String mapKey : objectMap.keySet()){
@@ -306,7 +308,7 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                break;
             }
             List<String> mapList = objectMap.get(mapKey);
-            String[] categorys = new String[]{"F","T","TA"};// F：理论值  T:公差    TA:偏差
+            String[] categorys = new String[]{"F","T","TA"};// F：理论值  T:公差    TA:偏差  存 D
             String[]  valeKeys = new String[]{"X","Y","Z","P"}; //
             String[]  directs = new String[]{"UP","DOWN"};// UP:上公差   DOWN:下公差
                 for(int x = 0;x<categorys.length;x++){
@@ -369,11 +371,11 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                         }
                         dataList.add(onLineData);
                     }
-                    if("TA".equals(categorys[x])) {//偏差
+                    if("TA".equals(categorys[x])) {//偏差   统一设置D
                         //创建对像
                         OnLineData onLineData = new OnLineData();
                         onLineData.setMeasurePoint(mapKey);//设置测量点
-                        onLineData.setMeasureCategory(categorys[x]);//设置测量点
+                        onLineData.setMeasureCategory("D");//设置测量点
                         onLineData = demoSetBaseInfo(onLineData,baseInfoMap); //设置基础信息
 
                             for (String valeKey : valeKeys) {
@@ -402,14 +404,21 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                     }
                 }
         }
+        //查出工厂适配表 将车型适配为
+        List<HashMap<String,Object>>  carInfos = piwebCarInfoDao.queryCarInfo();
 
         if(dataList.size()>0){
+            for(OnLineData onLineData:dataList){
+                for(HashMap<String,Object> carInfo : carInfos){
+                    String[] alisaNames = carInfo.get("CAR_ALIAS_NAME").toString().split(",");
+                    if(ArrayUtils.contains(alisaNames, onLineData.getModel())){
+                        onLineData.setFactory(carInfo.get("FACTORY").toString());
+                    }
+
+                }
+            }
             onlineDataDao.insertMyBatch(dataList);
         }
-
-        //数据拆分
-
-        //F(NRHKM0103_O_AA)   理论值  T(NRHKM0103_O_AAX)    TA(NRHKM0103_O_AAX)   TA(NRHKM0103_O_AAP)
 
         }
     }
@@ -423,16 +432,18 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
         if(baseInfoMap.containsKey("TIME")){
             dateStr=  dateStr.concat(" "+baseInfoMap.get("TIME"));
         }
-        if(baseInfoMap.containsKey("PS(KENN)")){
-            onLineData.setUnitName(baseInfoMap.get("PS(KENN)"));//设置零件名
+        if(baseInfoMap.containsKey("MD(YMD1)")){
+            onLineData.setUnitName(baseInfoMap.get("MD(YMD1)"));//设置零件名
         }
         //设置车型
-        if(baseInfoMap.containsKey("carModel")){
-            onLineData.setModel(baseInfoMap.get("carModel"));//设置车型
+        if(baseInfoMap.containsKey("DI(Messmittel)")){
+            onLineData.setModel(baseInfoMap.get("DI(Messmittel)"));//设置车型
+        }
+        //设置钢号
+        if(baseInfoMap.containsKey("PS(LFD_NR)")){
+            onLineData.setJustNo(baseInfoMap.get("PS(LFD_NR)"));//钢号
         }
 
-
-        //版本2
 
         onLineData.setMeasureTime(dateStr);//设置时间
         return onLineData;

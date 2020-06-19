@@ -1146,8 +1146,6 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
         }
         if(sourceFile.isDirectory()){//路径e79fa5e98193e59b9ee7ad9431333332616430判断，是路径还是单个的文件
             File[] cf = sourceFile.listFiles();
-            System.out.println("length" + cf.length);
-            System.out.println("length2" + sourceFile.length());
             for(File fn : cf){
                 if(fn.isFile()){
                     FileInputStream fis = new FileInputStream(fn);

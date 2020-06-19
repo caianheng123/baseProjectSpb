@@ -1,5 +1,6 @@
 package com.faw.modules.piWebJob.watcher;
 
+import com.faw.config.OnlineDataDirConfig;
 import com.faw.modules.piWebJob.service.IOnlineAnalysis;
 import com.faw.utils.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,40 +10,25 @@ import org.springframework.core.annotation.Order;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
+import javax.xml.crypto.Data;
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 
 //
 @WebListener
 @Order(value = 10)
 public class ContextListener implements ServletContextListener {
-    //txt数据文件夹
-    @Value("${abf.onlineData.dirPathTxt}")
-    private String txtDir;
-    //demo数据文件夹  车型1
-    @Value("${abf.onlineData.dirPathDemo.mode1Dir}")
-    private String demo1Dir;
 
-    //demo数据文件夹  车型2
-    @Value("${abf.onlineData.dirPathDemo.mode2Dir}")
-    private String demo2Dir;
-
+    @Autowired
+    private OnlineDataDirConfig onlineDataDirConfig;
     //数据抽取日志输出文件夹
-    @Value("${abf.onlineData.logFile}")
+    @Value("${abf.log.logFile}")
     private String logFilePath;
-
-    //共享文件夹
-    @Value("${abf.onlineData.sharedTxtFile}")
-    private String shareTxtDir;
-
-    @Value("${abf.onlineData.sharedDemoFile.model1Dir}")
-    private String shareDemo1Dir;
-
-    @Value("${abf.onlineData.sharedDemoFile.model2Dir}")
-    private String shareDemo2Dir;
-
-
 
     @Autowired
     private IOnlineAnalysis onlineAnalysis;
@@ -59,12 +45,11 @@ public class ContextListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent arg0) {
         System.out.println("===========================MyServletContextListener初始化");
 
-        final File txtFile = new File(txtDir);
-        final File demo1File = new File(demo1Dir);
-        final File demo2File = new File(demo2Dir);
-        final File shareTxtFile = new File(shareTxtDir);//共享文件夹 txt
-        final File shareDemo1File = new File(shareDemo1Dir); //共享文件夹 demo 车型1
-        final File shareDemo2File = new File(shareDemo2Dir); //共享文件夹 demo 车型2
+        Map<String,String> targetDirPathMap = onlineDataDirConfig.getTargetMap();
+        Map<String,List<String>> shareDirPathMap = onlineDataDirConfig.getShareMaplist();
+
+        //循环 分享目录通过key获取目标文件地址 key 通过 targetDirPathMap 获取地址     通过value获取共享文件地址
+
         final File logFile = new File(logFilePath);
         if (!logFile.exists()) {
             try {
@@ -75,237 +60,100 @@ public class ContextListener implements ServletContextListener {
         }
         new WriteLogThread(queue, logFile).start();//日志线程
 
-       //检测txt文件夹的 线程
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    new WatchDir(txtFile, true, new FileActionCallback() {
-                        @Override
-                        public void create(File file1) {
-                            System.out.println("文件已创建\t" + file1.getAbsolutePath());
-                            //onlineAnalysis.txtAnalysisRule(file);//数据抽取到 oracle
-                            OnlineDataBusThread task1 =   new OnlineDataBusThread(file1,queue,"txt",onlineAnalysis);//监听线程1
-                            Future<?> future = service.submit(task1);//开启该线程
-                            try {
-                                future.get();// 结果
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            } catch (ExecutionException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        @Override
-                        public void delete(File file) {
-                            System.out.println("文件已删除\t" + file.getAbsolutePath());
-                            //删除操作的 业务
-                        }
+        for (String key : shareDirPathMap.keySet()) {
+            List<String> sharePaths = shareDirPathMap.get(key);
+            final String targetPath = targetDirPathMap.get(key);
+            //监听共享文件夹文件变化线程
+            final String key2 = key; //
+            final File targetFile = new File(targetPath);
+            for(String sharePath : sharePaths) { //遍历当前可以
+                final File shareFile = new File(sharePath);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            new WatchDir(shareFile, true, new FileActionCallback() {
+                                @Override
+                                public void create(File file) {
+                                }
+                                @Override
+                                public void delete(File file2) {
+                                    System.out.println("文件已删除\t" + file2.getAbsolutePath());
+                                    //删除操作的 业务
+                                }
+                                @Override
+                                public void modify(File file) {
+                                    //修改操作的 业务
+                                    //创建业务线程
+                                    ShareFileCopeThread task;
+                                    if("txt".equals(key2)){
+                                        task =  new ShareFileCopeThread(file,targetPath,queue,key2);//监听线程1
+                                    }else{
+                                        task =  new ShareFileCopeThread(file,targetPath,queue,key2);//监听线程1
+                                    }
 
-                        @Override
-                        public void modify(File file) {
-                            System.out.println("文件已修改\t" + file.getAbsolutePath());
-                            //修改操作的 业务
+                                    Future<?> future = service.submit(task);//开启该线程
+                                    try {
+                                        future.get();// 结果
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    } catch (ExecutionException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                    }
+                }).start();
+
+                System.out.println("正在监视的共享文件夹:" + shareFile.getAbsolutePath());
+
             }
-        }).start();
+            //创建文件 本地文件夹 变化的监听线程 解析线程
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        new WatchDir(targetFile, true, new FileActionCallback() {
+                            @Override
+                            public void create(File file1) {
 
-        //检测demo1 车型1 文件夹的 线程
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    new WatchDir(demo1File, true, new FileActionCallback() {
-                        @Override
-                        public void create(File file2) {
-                            System.out.println("文件已创建\t" + file2.getAbsolutePath());
-                            //onlineAnalysis.demoAnalysisRule(file2);//数据抽取到 oracle
-                            //创建业务线程
-                            OnlineDataBusThread task2 =  new OnlineDataBusThread(file2,queue,"demoCar1",onlineAnalysis);//监听线程1
-                            Future<?> future = service.submit(task2);//开启该线程
-                            try {
-                                future.get();// 结果
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            } catch (ExecutionException e) {
-                                e.printStackTrace();
                             }
-                        }
-                        @Override
-                        public void delete(File file2) {
-                            System.out.println("文件已删除\t" + file2.getAbsolutePath());
-                            //删除操作的 业务
-                        }
-                        @Override
-                        public void modify(File file2) {
-                            System.out.println("文件已修改\t" + file2.getAbsolutePath());
-                            //修改操作的 业务
-                        }
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-
-        //检测demo2 车型2 文件夹的 线程  暂时关闭
-      /*  new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    new WatchDir(demo2File, true, new FileActionCallback() {
-                        @Override
-                        public void create(File file2) {
-                            System.out.println("文件已创建\t" + file2.getAbsolutePath());
-                            //onlineAnalysis.demoAnalysisRule(file2);//数据抽取到 oracle
-                            //创建业务线程
-                            OnlineDataBusThread task2 =  new OnlineDataBusThread(file2,queue,"demoCar2",onlineAnalysis);//监听线程1
-                            Future<?> future = service.submit(task2);//开启该线程
-                            try {
-                                future.get();// 结果
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            } catch (ExecutionException e) {
-                                e.printStackTrace();
+                            @Override
+                            public void delete(File file)
+                            {
+                                //删除操作的 业务
                             }
-                        }
-                        @Override
-                        public void delete(File file2) {
-                            System.out.println("文件已删除\t" + file2.getAbsolutePath());
-                            //删除操作的 业务
-                        }
-                        @Override
-                        public void modify(File file2) {
-                            System.out.println("文件已修改\t" + file2.getAbsolutePath());
-                            //修改操作的 业务
-                        }
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();*/
 
-
-        //检测共享文件 txt 文件夹的 线程
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    new WatchDir(shareTxtFile, true, new FileActionCallback() {
-                        @Override
-                        public void create(File file) {
-                            System.out.println("文件已创建\t" + file.getAbsolutePath());
-                        }
-                        @Override
-                        public void delete(File file2) {
-                            System.out.println("文件已删除\t" + file2.getAbsolutePath());
-                            //删除操作的 业务
-                        }
-                        @Override
-                        public void modify(File file) {
-                            System.out.println("文件已修改\t" + file.getAbsolutePath());
-                            //修改操作的 业务
-                            //创建业务线程
-                            ShareFileCopeThread task =  new ShareFileCopeThread(file,txtDir,queue,"Txt");//监听线程1
-                            Future<?> future = service.submit(task);//开启该线程
-                            try {
-                                future.get();// 结果
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            } catch (ExecutionException e) {
-                                e.printStackTrace();
+                            @Override
+                            public void modify(File file) {
+                                OnlineDataBusThread task1;
+                                if("txt".equals(key2)){
+                                    task1 =   new OnlineDataBusThread(file,queue,key2,onlineAnalysis);//监听线程1
+                                }else{
+                                    task1 =   new OnlineDataBusThread(file,queue,key2,onlineAnalysis);//监听线程1
+                                }
+                                Future<?> future = service.submit(task1);//开启该线程
+                                try {
+                                    future.get();// 结果
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                } catch (ExecutionException e) {
+                                    e.printStackTrace();
+                                }
                             }
-                        }
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
+                        });
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
-        }).start();
+            }).start();
 
-        //检测共享文件 demo 车型2 文件夹的 线程
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    new WatchDir(shareDemo1File, true, new FileActionCallback() {
-                        @Override
-                        public void create(File file) {
-                            System.out.println("文件已创建\t" + file.getAbsolutePath());
-                        }
-                        @Override
-                        public void delete(File file2) {
-                            System.out.println("文件已删除\t" + file2.getAbsolutePath());
-                            //删除操作的 业务
-                        }
-                        @Override
-                        public void modify(File file) {
-                            System.out.println("文件已修改\t" + file.getAbsolutePath());
-                            //修改操作的 业务
-                            //创建业务线程
-                            ShareFileCopeThread task =  new ShareFileCopeThread(file,demo1Dir,queue,"demoCar1");//监听线程1
-                            Future<?> future = service.submit(task);//开启该线程
-                            try {
-                                future.get();// 结果
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            } catch (ExecutionException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+            System.out.println("正在监视文件夹:" + targetFile.getAbsolutePath());
+        }
 
-        //检测共享文件 demo 车型1 文件夹的 线程  //暂时关闭
-/*        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    new WatchDir(shareDemo2File, true, new FileActionCallback() {
-                        @Override
-                        public void create(File file) {
-                            System.out.println("文件已创建\t" + file.getAbsolutePath());
-                        }
-                        @Override
-                        public void delete(File file2) {
-                            System.out.println("文件已删除\t" + file2.getAbsolutePath());
-                            //删除操作的 业务
-                        }
-                        @Override
-                        public void modify(File file) {
-                            System.out.println("文件已修改\t" + file.getAbsolutePath());
-                            //修改操作的 业务
-                            //创建业务线程
-                            ShareFileCopeThread task =  new ShareFileCopeThread(file,demo2Dir,queue,"demoCar2");//监听线程1
-                            Future<?> future = service.submit(task);//开启该线程
-                            try {
-                                future.get();// 结果
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            } catch (ExecutionException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();*/
-        System.out.println("正在监视文件夹:" + txtFile.getAbsolutePath());
-        System.out.println("正在监视文件夹2:" + demo1File.getAbsolutePath());
-        //System.out.println("正在监视文件夹3:" + demo2File.getAbsolutePath());
-        System.out.println("正在监视共享文件夹1:" + shareTxtFile.getAbsolutePath());
-        System.out.println("正在监视共享文件夹2:" + shareDemo1File.getAbsolutePath());
-        //System.out.println("正在监视共享文件夹3:" + shareDemo2File.getAbsolutePath());
     }
 
     @Override
@@ -330,7 +178,9 @@ class ShareFileCopeThread implements Runnable {
     }
     public void run() {
         //创建业务操作的 业务
-      String outLog = business+"ShareFile="+file.getName()+"|";
+        Date date = new Date();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        String outLog = simpleDateFormat.format(date)+"=="+business+"ShareFile="+file.getName()+"\r\n";
         try {
             buffer.put(outLog.getBytes());
         } catch (InterruptedException e) {
@@ -365,22 +215,19 @@ class OnlineDataBusThread implements Runnable {
 
     public void run() {
         //创建业务操作的 业务
-        String outLog = business+"="+file.getName()+"|";
+        Date date = new Date();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        String outLog = simpleDateFormat.format(date)+"=="+business+"ShareFile="+file.getName()+"\r\n";
         try {
             buffer.put(outLog.getBytes());
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         //业务
-        if (business != null && "demoCar1".equals(business)) {
-            onlineAnalysis.demoAnalysisRule(file,"b8I");//数据抽取到 oracle
-
-        } else  if (business != null && "demoCar2".equals(business)) {
-            onlineAnalysis.demoAnalysisRule(file, "car2");//数据抽取到 oracle
-
-        }
-        else if (business != null && "txt".equals(business)) {
+        if (business != null && "txt".equals(business)) {
             onlineAnalysis.txtAnalysisRule(file);//数据抽取到 oracle
+        }else{
+            onlineAnalysis.demoAnalysisRule(file);//数据抽取到 oracle
         }
 
     }

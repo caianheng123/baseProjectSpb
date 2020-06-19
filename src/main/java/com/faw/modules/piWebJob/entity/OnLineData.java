@@ -55,17 +55,11 @@ public class OnLineData extends IdEntity{
 
     private String measureTime;
 
-    @TxtFild(value = "MODEL")
-    @DemoFild(value = "PV(AUTO)")
     private String model;
-
-    @TxtFild(value = "FIXTURE")
-    private String fixTure;
 
     private String factory;
 
     @TxtFild(value = "GAUGE ID")
-    @DemoFild(value = "PR(PARTNM)")
     private String unitName;
 
     private String measurePoint;

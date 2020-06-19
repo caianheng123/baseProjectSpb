@@ -8,7 +8,6 @@
 		<result column="PART_ID2" property="partId2" />
 		<result column="MEASURE_TIME" property="measureTime" />
 		<result column="MODEL" property="model" />
-		<result column="FIXTURE" property="fixTure" />
 		<result column="FACTORY" property="factory" />
 		<result column="UNIT_NAME" property="unitName" />
 		<result column="MEASURE_POINT" property="measurePoint" />
@@ -37,7 +36,6 @@
 		PART_ID2,
 		MEASURE_TIME,
 		MODEL,
-		FIXTURE,
 		FACTORY,
 		UNIT_NAME,
 		MEASURE_POINT,
@@ -61,7 +59,6 @@
 			#{item.partId2, jdbcType=VARCHAR},
 			#{item.measureTime, jdbcType=VARCHAR},
 			#{item.model, jdbcType=VARCHAR},
-			#{item.fixTure, jdbcType=VARCHAR},
 			#{item.factory, jdbcType=VARCHAR},
 			#{item.unitName, jdbcType=VARCHAR},
 			#{item.measurePoint, jdbcType=VARCHAR},

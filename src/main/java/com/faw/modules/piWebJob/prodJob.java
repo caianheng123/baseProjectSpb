@@ -25,8 +25,5 @@ import java.util.Date;
 @Component("prodJob")
 public class prodJob {
 
-    public void prodJob1(){
-        System.out.println("------"+new Date().getTime());
-    }
 
 }
