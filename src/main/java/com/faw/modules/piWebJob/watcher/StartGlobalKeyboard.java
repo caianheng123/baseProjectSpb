@@ -11,8 +11,13 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 @Component
 @Order(value = 1)
@@ -24,6 +29,15 @@ public class StartGlobalKeyboard implements CommandLineRunner {
     //首次启动标识
     @Value("${abf.log.firstStart}")
     private  String firstStart;
+
+    @Value("${abf.log.firstReadLog}")
+    private String firstReadLogPath;
+
+    @Value("${abf.log.beginTime}")
+    private String beginTime;
+
+    //设置个阻塞队列
+    public static BlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(1024 * 1024);
 
     @Autowired
     private IOnlineAnalysis onlineAnalysis;
@@ -52,12 +66,21 @@ public class StartGlobalKeyboard implements CommandLineRunner {
         Map<String,String> targetDirPathMap = onlineDataDirConfig.getTargetMap();
         Map<String,List<String>> shareDirPathMap = onlineDataDirConfig.getShareMaplist();
 
-        //循环 分享目录通过key获取目标文件地址 key 通过 targetDirPathMap 获取地址     通过value获取共享文件地址
+        final File logFile = new File(firstReadLogPath);
+        if (!logFile.exists()) {
+            try {
+                logFile.createNewFile();//创建新的文件夹
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        //写日志
+        new WriteLogThread(queue, logFile).start();//日志线程
 
+        //循环 分享目录通过key获取目标文件地址 key 通过 targetDirPathMap 获取地址     通过value获取共享文件地址
         for (String key : shareDirPathMap.keySet()) {
             List<String> sharePaths = shareDirPathMap.get(key);
-
-            final String targetPath = targetDirPathMap.get(key);
+            final  String key2 = key;
             //创建共享文件copy线程
             for(String sharePath : sharePaths){
                 final File shareFile = new File(sharePath);
@@ -65,7 +88,11 @@ public class StartGlobalKeyboard implements CommandLineRunner {
                     @Override
                     public void run() {
                         try {
-                            write(targetPath,shareFile);
+                            if("txt".equals(key2)){
+                                read(shareFile,"txt",queue);
+                            }else{
+                                read(shareFile,"demo",queue);
+                            }
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -73,28 +100,7 @@ public class StartGlobalKeyboard implements CommandLineRunner {
                 }).start();
             }
 
-            final  File targetFile = new File(targetPath);
-            final  String key2 = key;
-            //创建文件解析线程
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        if("txt".equals(key2)){
-                            read(targetFile,"txt");
-                        }else{
-                            read(targetFile,"demo");
-                        }
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-
         }
-
-
 
     }
 
@@ -105,13 +111,87 @@ public class StartGlobalKeyboard implements CommandLineRunner {
         File toFile = new File(toPath);
         FileUtils.copy(f,toFile);
     }
-    public void  read (File file,String bustype) throws Exception {
-        File f = new File(file.getAbsolutePath());
-        if("txt".equals(bustype)){
-            onlineAnalysis.txtAnalysisRule(f);
-        }else {
-            onlineAnalysis.demoAnalysisRule(f);
+    //解析方法
+    public void  read (File file,String bustype,BlockingQueue<byte[]> buffer) throws Exception {
+        if(file.isDirectory()){
+            FileFilter fileFilter = new FileFilter() {
+                @Override
+                public boolean accept(File file1) {
+                    Date date = null;
+                    Long time = null;
+
+                    try {
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                        date = dateFormat.parse(beginTime);
+                        time = file1.lastModified();
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    if(time > date.getTime()){ //初次启动解析 6月开始的数据
+                        return true;
+                    }
+                    return false;
+                }
+            };
+
+            File[] fileList = file.listFiles(fileFilter);
+
+            for(int x =0 ;x<fileList.length;x++){
+                Date date2 = new Date();
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+                String outLog = simpleDateFormat.format(date2)+"=="+bustype+"ShareFile=="+fileList[x].getName()+"==fileTime=="+simpleDateFormat.format(new Date(fileList[x].lastModified()))+"\r\n";
+                try {
+                    buffer.put(outLog.getBytes());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                if("txt".equals(bustype)){
+                    onlineAnalysis.txtAnalysisRule(fileList[x]);
+                }else {
+                    onlineAnalysis.demoAnalysisRule(fileList[x]);
+                }
+            }
+
+        }
+
+
+    }
+    //日志线程
+    class WriteLogThread extends Thread {
+        private BlockingQueue<byte[]> buffer;
+        private File targetFile;
+        private FileOutputStream fileOutputStream;
+
+        public WriteLogThread(BlockingQueue<byte[]> buffer, File targetFile) {
+            this.buffer = buffer;
+            this.targetFile = targetFile;
+            try {
+                this.fileOutputStream = new FileOutputStream(targetFile, true);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void run() {
+            while (true) {
+                try {
+                    if (!buffer.isEmpty()) {
+                        fileOutputStream.write(buffer.take());
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+          /*  if(buffer.isEmpty()) {
+                //当缓冲区没有元素，并且 count为0，则说明读写完成
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }*/
+            }
+
         }
     }
-
 }

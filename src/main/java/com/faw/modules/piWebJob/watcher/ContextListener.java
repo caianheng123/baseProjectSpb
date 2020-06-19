@@ -74,7 +74,7 @@ public class ContextListener implements ServletContextListener {
                         try {
                             new WatchDir(shareFile, true, new FileActionCallback() {
                                 @Override
-                                public void create(File file) {
+                                public void modify(File file) {
                                 }
                                 @Override
                                 public void delete(File file2) {
@@ -82,14 +82,19 @@ public class ContextListener implements ServletContextListener {
                                     //删除操作的 业务
                                 }
                                 @Override
-                                public void modify(File file) {
+                                public void create(File file) {
+                                    System.out.println("共享文件夹修改"+file.getName()+"---"+key2);
                                     //修改操作的 业务
                                     //创建业务线程
-                                    ShareFileCopeThread task;
+                                    OnlineDataBusThread task;
                                     if("txt".equals(key2)){
-                                        task =  new ShareFileCopeThread(file,targetPath,queue,key2);//监听线程1
+                                        task =  new OnlineDataBusThread(file,queue,key2,"ShareDir",onlineAnalysis);//监听线程1
+                                        //不进行copy操作
+                                        //task =  new ShareFileCopeThread(file,targetPath,queue,key2);//监听线程1
                                     }else{
-                                        task =  new ShareFileCopeThread(file,targetPath,queue,key2);//监听线程1
+                                        task =  new OnlineDataBusThread(file,queue,key2,"ShareDir",onlineAnalysis);//监听线程1
+                                        //不进行copy操作
+                                        //task =  new ShareFileCopeThread(file,targetPath,queue,key2);//监听线程1
                                     }
 
                                     Future<?> future = service.submit(task);//开启该线程
@@ -118,7 +123,7 @@ public class ContextListener implements ServletContextListener {
                     try {
                         new WatchDir(targetFile, true, new FileActionCallback() {
                             @Override
-                            public void create(File file1) {
+                            public void modify(File file1) {
 
                             }
                             @Override
@@ -128,12 +133,12 @@ public class ContextListener implements ServletContextListener {
                             }
 
                             @Override
-                            public void modify(File file) {
+                            public void create(File file) {
                                 OnlineDataBusThread task1;
                                 if("txt".equals(key2)){
-                                    task1 =   new OnlineDataBusThread(file,queue,key2,onlineAnalysis);//监听线程1
+                                    task1 =   new OnlineDataBusThread(file,queue,key2,"LocalDir",onlineAnalysis);//监听线程1
                                 }else{
-                                    task1 =   new OnlineDataBusThread(file,queue,key2,onlineAnalysis);//监听线程1
+                                    task1 =   new OnlineDataBusThread(file,queue,key2,"LocalDir",onlineAnalysis);//监听线程1
                                 }
                                 Future<?> future = service.submit(task1);//开启该线程
                                 try {
@@ -180,7 +185,7 @@ class ShareFileCopeThread implements Runnable {
         //创建业务操作的 业务
         Date date = new Date();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-        String outLog = simpleDateFormat.format(date)+"=="+business+"ShareFile="+file.getName()+"\r\n";
+        String outLog = simpleDateFormat.format(date)+"=="+business+"ShareFile=="+file.getName()+"\r\n";
         try {
             buffer.put(outLog.getBytes());
         } catch (InterruptedException e) {
@@ -200,12 +205,14 @@ class OnlineDataBusThread implements Runnable {
     private BlockingQueue<byte[]> buffer;
     private File file;
     private String business;
+    private String dirType;
     private IOnlineAnalysis onlineAnalysis;
 
-    public OnlineDataBusThread(File file, BlockingQueue<byte[]> buffer, String business, IOnlineAnalysis onlineAnalysis) {
+    public OnlineDataBusThread(File file, BlockingQueue<byte[]> buffer, String business,String dirType, IOnlineAnalysis onlineAnalysis) {
         this.file = file;
         this.buffer = buffer;
         this.business = business;
+        this.dirType = dirType;
         this.onlineAnalysis = onlineAnalysis;
     }
 
@@ -217,7 +224,7 @@ class OnlineDataBusThread implements Runnable {
         //创建业务操作的 业务
         Date date = new Date();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-        String outLog = simpleDateFormat.format(date)+"=="+business+"ShareFile="+file.getName()+"\r\n";
+        String outLog = simpleDateFormat.format(date)+"=="+business+dirType+"=="+file.getName()+"\r\n";
         try {
             buffer.put(outLog.getBytes());
         } catch (InterruptedException e) {

@@ -84,7 +84,9 @@ http:
 abf:
     log:
        logFile : D:\piWebSchedule\logFile.txt
+       firstReadLog : D:\piWebSchedule\firstlogFile.txt
        firstStart : D:\piWebSchedule\firstStart
+       beginTime : 2020-06-01
        path: D:\piWebSchedule\logs
        onlinedata:
         dirPathTxt: D:\piWebSchedule\onlineData\txt
@@ -95,7 +97,7 @@ abf:
         sharedTxtFile :
           txtDir1 : \\\\10.228.165.206\onlinedata
           txtDir2 : \\\\10.228.165.209\onlinedata
-          txtDir3 : \\\\10.228.165.221\onlinedata
+          txtDir3 : \\\\10.228.165.211\onlinedata
         sharedDemoFile :
           model1Dir1 : \\\\10.228.165.173\Export\B8L
           model1Dir2 : \\\\10.228.165.178\Export\B8L
