@@ -24,6 +24,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -77,7 +79,7 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                 }
             }
             //匹配某个对象的正则  筛选出那些对象
-            String patterObj = "^(D|B|A|LS|US|UR|LR|UT|LT)+\\s+\\S*\\s+(X|Y|Z)+$";
+            String patterObj = "^(D|B|LS|US)+\\s+\\S*\\s+(X|Y|Z)+$";   // D 偏差 B 理论  LS 下公差  US 上公差
             Pattern p = Pattern.compile(patterObj);
 
 
@@ -89,7 +91,7 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                 for (int y = 0; y < recodeArray.length; y++) {
                     Matcher matcher = p.matcher(recodeArray[y]);
                     if (matcher.find()) {//匹配到具体obj
-                        String[] infoArr = recodeArray[y].split("\\s+");
+                        String[] infoArr = recodeArray[y].split("\\s+"); //空格拆分
                         if (infoArr.length == 3) {
                             pointInfoSet.add(infoArr[1]);//车型
                         }
@@ -205,6 +207,13 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
             //持久化到数据库
             if (onLineDatas.size() > 0) {
                 for(OnLineData onLineData:onLineDatas){
+                    //设置更新时间
+                    try {
+                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        onLineData.setUpdateTime(simpleDateFormat.parse(onLineData.getMeasureTime()));
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
                     for(HashMap<String,Object> carInfo : carInfos){
                         String[] alisaNames = carInfo.get("CAR_ALIAS_NAME").toString().split(",");
                         if(ArrayUtils.contains(alisaNames, onLineData.getModel())){
@@ -308,7 +317,7 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                break;
             }
             List<String> mapList = objectMap.get(mapKey);
-            String[] categorys = new String[]{"F","T","TA"};// F：理论值  T:公差    TA:偏差  存 D
+            String[] categorys = new String[]{"F","T","TA"};// F：理论值  T:公差 上存US 下存 LS    TA:偏差  存 D
             String[]  valeKeys = new String[]{"X","Y","Z","P"}; //
             String[]  directs = new String[]{"UP","DOWN"};// UP:上公差   DOWN:下公差
                 for(int x = 0;x<categorys.length;x++){
@@ -318,7 +327,13 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                             OnLineData onLineData = new OnLineData();
                                 onLineData.setCategoryDirect(directs[y]);//设置方向
                                 onLineData.setMeasurePoint(mapKey);//设置测量点
-                                onLineData.setMeasureCategory(categorys[x]);//设置测量点
+                                if("UP".equals(directs[y])){  // T - > US
+                                    onLineData.setMeasureCategory("US");//设置测量点类型
+                                }else{
+                                    onLineData.setMeasureCategory("LS");//设置测量点类型
+                                }
+
+
                                 onLineData = demoSetBaseInfo(onLineData,baseInfoMap); //设置基础信息
                                      for(String valeKey : valeKeys ){
                                          String keyFiltStr = categorys[x]+"("+mapKey+valeKey+")";
@@ -357,7 +372,8 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                         //创建对像
                         OnLineData onLineData = new OnLineData();
                         onLineData.setMeasurePoint(mapKey);//设置测量点
-                        onLineData.setMeasureCategory(categorys[x]);//设置测量点
+                        // txt demo 理论值同一类型为 B
+                        onLineData.setMeasureCategory("B");//设置测量点类型
                         onLineData = demoSetBaseInfo(onLineData,baseInfoMap); //设置基础信息
 
                         String keyF = categorys[x]+"("+mapKey+")";
@@ -409,6 +425,13 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
 
         if(dataList.size()>0){
             for(OnLineData onLineData:dataList){
+                //设置更新时间
+                try {
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    onLineData.setUpdateTime(simpleDateFormat.parse(onLineData.getMeasureTime()));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
                 for(HashMap<String,Object> carInfo : carInfos){
                     String[] alisaNames = carInfo.get("CAR_ALIAS_NAME").toString().split(",");
                     if(ArrayUtils.contains(alisaNames, onLineData.getModel())){

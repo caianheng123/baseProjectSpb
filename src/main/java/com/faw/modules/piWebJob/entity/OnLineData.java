@@ -10,10 +10,13 @@
  */
 package com.faw.modules.piWebJob.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.faw.base.annotation.DemoFild;
 import com.faw.base.annotation.TxtFild;
 import com.faw.base.entity.IdEntity;
 import lombok.Data;
+
+import java.util.Date;
 
 /**
  * 〈一句话功能简述〉<br> 
@@ -29,11 +32,12 @@ public class OnLineData extends IdEntity{
         super();
     }
 
+    //这串数字的后八位 钢号
     @TxtFild(value = "Part ID")
     private String partId;
 
-    @TxtFild(value = "PartID 2")
-    private String partId2;
+    //@TxtFild(value = "PartID 2")
+    //private String partId2;
 
     @TxtFild(value = "MO")
     private String month;
@@ -78,6 +82,15 @@ public class OnLineData extends IdEntity{
 
     private String justNo;  //钢号
 
+    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
+    private Date updateTime;
+
+    public Date getUpdateTime() {
+        if(updateTime == null){
+            updateTime = new Date();
+        }
+        return updateTime;
+    }
 
     private String reserve1;//预留字段1
 

@@ -19,7 +19,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.faw.modules.piWebJob.service.IOnlineAnalysis;
 
 import java.io.File;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -74,7 +77,7 @@ public class QualityApplicationTests {
 
 	@Test
 	public void httpTest() throws  Exception {
-		String str = httpAPIService.doGet("http://10.226.95.84/piWeb/dataServiceRest/parts?partPath=/VW216/ZSB/AUFBAU1/");
+		String str = httpAPIService.doGet(" ");
 		System.out.println("========="+str);
 	}
 
@@ -86,9 +89,17 @@ public class QualityApplicationTests {
 
 	@Test
 	public void batchInsert(){
-	/*	OnLineData a = new OnLineData();
+		OnLineData a = new OnLineData();
+		a.setMeasureTime("2020-06-11 12:12:12");
+		try {
+			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			a.setUpdateTime(simpleDateFormat.parse(a.getMeasureTime()));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		a.setId("999999999999921");
 		List<OnLineData> lineData = new ArrayList<>();
 		lineData.add(a);
-		OnlineDataDao.insertMyBatch(lineData);*/
+		OnlineDataDao.insertMyBatch(lineData);
 	}
 }
