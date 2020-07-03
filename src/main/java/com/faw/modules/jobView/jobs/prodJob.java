@@ -8,7 +8,7 @@
  * <author>          <time>          <version>          <desc>
  * 作者姓名           修改时间           版本号              描述
  */
-package com.faw.modules.piWebJob;
+package com.faw.modules.jobView.jobs;
 
 import org.springframework.stereotype.Component;
 

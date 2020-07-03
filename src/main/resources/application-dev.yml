@@ -127,3 +127,35 @@ onlinedata:
             demoCCSB:
               - '\\\\10.228.165.173\Export\CCSB'
               - '\\\\10.228.165.178\Export\CCSB'
+pdfextract:
+    confobj :
+       superAlmost: {
+         factory : 1,
+         carName : 2,
+         categoryData : 3,
+         partName : 4,
+         measurePoint : 5,
+         oTol : 6,
+         uTol : 7,
+         deviation : 8,
+         createTime : 9
+       }
+       stablePassRate : {
+          factory : 0,
+          carName : 1,
+          categoryData : 2,
+          partName : 3,
+          stableFuncGreen : 4,
+          stableFuncYellow : 5,
+          stableFuncRed : 6,
+          stableComGreen : 7,
+          stableComYellow : 8,
+          stableComRed : 9,
+          passrateFuncGreen : 10,
+          passrateFuncYellow : 11,
+          passrateFuncRed : 12,
+          passrateComGreen : 13,
+          passrateComYellow : 14,
+          passrateComRed : 15,
+          createTime : 16
+       }

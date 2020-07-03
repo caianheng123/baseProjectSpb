@@ -7,6 +7,7 @@ import com.faw.modules.jobView.service.ScheduleJobLogService;
 import com.faw.modules.outPutLog.service.TimeOutPutLogService;
 import com.faw.modules.piWebJob.dao.OnlineDataDao;
 import com.faw.modules.piWebJob.entity.OnLineData;
+import com.faw.modules.piWebJob.service.IPdfExtract;
 import com.faw.utils.httpclient.HttpAPIService;
 import com.faw.utils.httpclient.HttpResult;
 import com.faw.utils.impala.ImpalaUtils;
@@ -37,6 +38,9 @@ public class QualityApplicationTests {
 	private ScheduleJobLogService scheduleJobLogService;
 	@Autowired
 	private  IOnlineAnalysis onlineAnalysis;
+
+	@Autowired
+	private IPdfExtract iPdfExtract;
 
 	@Autowired
 	private OnlineDataDao OnlineDataDao;
@@ -85,6 +89,14 @@ public class QualityApplicationTests {
 	public void fileReadTest(){
 
 		//onlineAnalysis.demoAnalysisRule(new File("F:\\aa"),"car1");
+	}
+
+	@Test
+	public void pdfExtractTest(){
+		// String templetePath = "D:\\VW481_ZSB_数据三方列表_FK.pdf";
+		 String templetePath = "D:\\VW481_ZSB_数据三方统计_HK.pdf";
+		//iPdfExtract.superAlmostExtractor(new File(templetePath));
+		iPdfExtract.stablePassRateExtractor(new File(templetePath));
 	}
 
 	@Test

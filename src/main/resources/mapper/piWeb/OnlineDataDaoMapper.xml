@@ -74,4 +74,95 @@
 		</foreach>
 	</insert>
 
+	<insert id="insertListStable" parameterType="java.util.List">
+		INSERT INTO PIWEB_STABLE_PASSRATE
+		(
+		id,
+		factory,
+		car_name,
+		part_name,
+		category_data,
+		stable_func_green,
+		stable_func_yellow,
+		stable_func_red,
+		stable_com_green,
+		stable_com_yellow,
+		stable_com_red,
+		passRate_func_green,
+		passRate_func_yellow,
+		passRate_func_red,
+		passRate_com_green,
+		passRate_com_yellow,
+		passRate_com_red,
+		create_time
+		)
+		<foreach collection="list" item="item" index="index" separator="union all">
+			(
+			select
+			#{item.id, jdbcType=VARCHAR},
+			#{item.factory, jdbcType=VARCHAR},
+			#{item.carName, jdbcType=VARCHAR},
+			#{item.partName, jdbcType=VARCHAR},
+			#{item.categoryData, jdbcType=VARCHAR},
+			#{item.stableFuncGreen, jdbcType=VARCHAR},
+			#{item.stableFuncYellow, jdbcType=VARCHAR},
+			#{item.stableFuncRed, jdbcType=VARCHAR},
+			#{item.stableComGreen, jdbcType=VARCHAR},
+			#{item.stableComYellow, jdbcType=VARCHAR},
+			#{item.stableComRed, jdbcType=VARCHAR},
+			#{item.passrateFuncGreen, jdbcType=VARCHAR},
+			#{item.passrateFuncYellow, jdbcType=VARCHAR},
+			#{item.passrateFuncRed, jdbcType=DATE},
+			#{item.passrateComGreen, jdbcType=VARCHAR},
+			#{item.passrateComYellow, jdbcType=VARCHAR},
+			#{item.passrateComRed, jdbcType=VARCHAR},
+			#{item.createTime, jdbcType=TIMESTAMP}
+			from
+			dual
+			)
+		</foreach>
+	</insert>
+
+	<insert id="insertListSuper" parameterType="java.util.List">
+		INSERT INTO PIWEB_SUPER_ALMOST
+		(
+		ID,
+		FACTORY,
+		CAR_NAME,
+		PART_NAME,
+		DATE_TIME,
+		O_TOL,
+		U_TOL,
+		DEVIATION,
+		MEASURE,
+		MERSURE_POINT,
+		CATEGORY_DATA,
+		CREATE_BY,
+		CREATE_TIME,
+		UPDATE_BY,
+		UPDATE_TIME
+		)
+		<foreach collection="list" item="item" index="index" separator="union all">
+			(
+			select
+			#{item.id, jdbcType=VARCHAR},
+			#{item.factory, jdbcType=VARCHAR},
+			#{item.carName, jdbcType=VARCHAR},
+			#{item.partName, jdbcType=VARCHAR},
+			#{item.dateTime, jdbcType=VARCHAR},
+			#{item.oTol, jdbcType=VARCHAR},
+			#{item.uTol, jdbcType=VARCHAR},
+			#{item.deviation, jdbcType=VARCHAR},
+			#{item.measure, jdbcType=VARCHAR},
+			#{item.measurePoint, jdbcType=VARCHAR},
+			#{item.categoryData, jdbcType=VARCHAR},
+			#{item.createBy, jdbcType=VARCHAR},
+			#{item.createTime, jdbcType=TIMESTAMP},
+			#{item.updateBy, jdbcType=VARCHAR},
+			#{item.updateTime, jdbcType=DATE}
+			from
+			dual
+			)
+		</foreach>
+	</insert>
 </mapper>
