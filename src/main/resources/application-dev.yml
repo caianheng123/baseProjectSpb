@@ -97,8 +97,8 @@ onlinedata:
           demoB8L : 'd:\piWebSchedule\onlineData\demo\B8L',
           demoCCFB : 'd:\piWebSchedule\onlineData\demo\CCFB',
           demoCCSB : 'd:\piWebSchedule\onlineData\demo\CCSB',
-          superAlmost : 'd:\piWebSchedule\pdf\superAlmost',
-          stablePassRate : 'd:\piWebSchedule\pdf\stablePassRate',
+          superAlmost : 'd:\piWebSchedule\onlineData\pdf\superAlmost',
+          stablePassRate : 'd:\piWebSchedule\onlineData\pdf\stablePassRate',
         }
         sharemaplist:
             txt:
