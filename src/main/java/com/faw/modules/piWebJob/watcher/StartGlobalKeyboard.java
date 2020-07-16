@@ -33,12 +33,17 @@ public class StartGlobalKeyboard implements CommandLineRunner {
     @Value("${abf.log.firstReadLog}")
     private String firstReadLogPath;
 
+    @Value("${abf.log.firstPdfLog}")
+    private String firstPdfLog;
+
     @Value("${abf.log.beginTime}")
     private String beginTime;
 
     //设置个阻塞队列
     public static BlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(1024 * 1024);
 
+    //设置个阻塞队列
+    public static BlockingQueue<byte[]> pdfQueue = new ArrayBlockingQueue<>(1024 * 1024);
     @Autowired
     private IOnlineAnalysis onlineAnalysis;
 
@@ -74,13 +79,21 @@ public class StartGlobalKeyboard implements CommandLineRunner {
                 e.printStackTrace();
             }
         }
+        final File pdfLogFile = new File(firstPdfLog);
+        if (!pdfLogFile.exists()) {
+            try {
+                pdfLogFile.createNewFile();//创建新的文件夹
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         //写日志
-        new WriteLogThread(queue, logFile).start();//日志线程
+        new WriteLogThread(queue, pdfQueue ,logFile,pdfLogFile).start();//日志线程
 
         //循环 分享目录通过key获取目标文件地址 key 通过 targetDirPathMap 获取地址     通过value获取共享文件地址
         for (String key : shareDirPathMap.keySet()) {
-            List<String> sharePaths = shareDirPathMap.get(key);
             final  String key2 = key;
+            List<String> sharePaths = shareDirPathMap.get(key);
             //创建共享文件copy线程
             for(String sharePath : sharePaths){
                 final File shareFile = new File(sharePath);
@@ -88,11 +101,12 @@ public class StartGlobalKeyboard implements CommandLineRunner {
                     @Override
                     public void run() {
                         try {
-                            if("txt".equals(key2)){
-                                read(shareFile,"txt",queue);
+                            read(shareFile,key2,queue,pdfQueue);
+                           /* if("txt".equals(key2)){
+                                read(shareFile,"txt",queue,pdfQueue);
                             }else{
-                                read(shareFile,"demo",queue);
-                            }
+                                read(shareFile,"demo",queue,pdfQueue);
+                            }*/
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -112,7 +126,7 @@ public class StartGlobalKeyboard implements CommandLineRunner {
         FileUtils.copy(f,toFile);
     }
     //解析方法
-    public void  read (File file,String bustype,BlockingQueue<byte[]> buffer) throws Exception {
+    public void  read (File file,String bustype,BlockingQueue<byte[]> buffer,BlockingQueue<byte[]> pdfBuffer) throws Exception {
         if(file.isDirectory()){
             FileFilter fileFilter = new FileFilter() {
                 @Override
@@ -139,18 +153,26 @@ public class StartGlobalKeyboard implements CommandLineRunner {
             for(int x =0 ;x<fileList.length;x++){
                 Date date2 = new Date();
                 SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-                String outLog = simpleDateFormat.format(date2)+"=="+bustype+"ShareFile=="+fileList[x].getName()+"==fileTime=="+simpleDateFormat.format(new Date(fileList[x].lastModified()))+"\r\n";
+                String outLog = simpleDateFormat.format(date2)+"=="+bustype+"=="+"ShareFile=="+fileList[x].getName()+"==fileTime=="+simpleDateFormat.format(new Date(fileList[x].lastModified()))+"\r\n";
                 try {
-                    buffer.put(outLog.getBytes());
+                    if("txt".equals(bustype)){
+                        onlineAnalysis.txtAnalysisRule(fileList[x]);
+                        buffer.put(outLog.getBytes());
+                    }else if("superAlmost".equals(bustype)){ //超差点pdf 解析
+                        onlineAnalysis.stablePassRateExtractor(file);//数据抽取到 oracle
+                        pdfBuffer.put(outLog.getBytes());
+                    }else if("stablePassRate".equals(bustype)){ //稳定性合格率 解析
+                        onlineAnalysis.stablePassRateExtractor(file);//数据抽取到 oracle
+                        pdfBuffer.put(outLog.getBytes());
+                    }else{
+                        onlineAnalysis.demoAnalysisRule(fileList[x]);
+                        buffer.put(outLog.getBytes());
+                    }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
 
-                if("txt".equals(bustype)){
-                    onlineAnalysis.txtAnalysisRule(fileList[x]);
-                }else {
-                    onlineAnalysis.demoAnalysisRule(fileList[x]);
-                }
+
             }
 
         }
@@ -160,14 +182,20 @@ public class StartGlobalKeyboard implements CommandLineRunner {
     //日志线程
     class WriteLogThread extends Thread {
         private BlockingQueue<byte[]> buffer;
-        private File targetFile;
-        private FileOutputStream fileOutputStream;
+        private BlockingQueue<byte[]> pdfBuffer;
+        private File onlineDataOFile;
+        private File pdfOFile;
+        private FileOutputStream onlineDataOutputStream;
+        private FileOutputStream pdfOutputStream;
 
-        public WriteLogThread(BlockingQueue<byte[]> buffer, File targetFile) {
+        public WriteLogThread(BlockingQueue<byte[]> buffer, BlockingQueue<byte[]> pdfBuffer,File onlineDataOFile,File pdfOFile) {
             this.buffer = buffer;
-            this.targetFile = targetFile;
+            this.pdfBuffer = pdfBuffer;
+            this.onlineDataOFile = onlineDataOFile;
+            this.pdfOFile = pdfOFile;
             try {
-                this.fileOutputStream = new FileOutputStream(targetFile, true);
+                this.onlineDataOutputStream = new FileOutputStream(onlineDataOFile, true);
+                this.pdfOutputStream = new FileOutputStream(pdfOFile, true);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -177,7 +205,10 @@ public class StartGlobalKeyboard implements CommandLineRunner {
             while (true) {
                 try {
                     if (!buffer.isEmpty()) {
-                        fileOutputStream.write(buffer.take());
+                        onlineDataOutputStream.write(buffer.take());
+                    }
+                    if (!pdfBuffer.isEmpty()) {
+                        pdfOutputStream.write(pdfBuffer.take());
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

@@ -56,7 +56,7 @@ public class PdfExtractorImpl implements IPdfExtract {
                              entityFile.set(superAlmost,sdf.parse(clowns[superAlmostMaoKey.get(key)]));
                          }
                          else{
-                             entityFile.set(superAlmost,clowns[superAlmostMaoKey.get(key)].toString());
+                             entityFile.set(superAlmost,clowns[superAlmostMaoKey.get(key)].toString().replace("\\\"","").trim());
                          }
                      } catch (NoSuchFieldException e) {
                          e.printStackTrace();
@@ -111,7 +111,7 @@ public class PdfExtractorImpl implements IPdfExtract {
                         entityFile.set(stablePassrate,sdf.parse(clowns[stablePassRateKey.get(key)]));
                     }
                     else{
-                        entityFile.set(stablePassrate,clowns[stablePassRateKey.get(key)]);
+                        entityFile.set(stablePassrate,clowns[stablePassRateKey.get(key)].toString().replaceAll("\\\"","").replaceAll(" ",""));
                     }
                 } catch (NoSuchFieldException e) {
                     e.printStackTrace();

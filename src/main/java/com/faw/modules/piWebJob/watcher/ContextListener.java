@@ -30,16 +30,21 @@ public class ContextListener implements ServletContextListener {
     @Value("${abf.log.logFile}")
     private String logFilePath;
 
+    //pdf数据抽取的 业务
+    @Value("${abf.log.pdfLogFile}")
+    private String pdfLocalFilePath;
+
     @Autowired
     private IOnlineAnalysis onlineAnalysis;
 
     //设置个线程池
     private ExecutorService service = Executors.newSingleThreadExecutor(); // 线程池
 
-    //设置个阻塞队列
+    //设置个阻塞队列  onlineData 的输入队列
     public static BlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(1024 * 1024);
 
-    //创建个 线程处理阻塞队列里的 文件
+    //设置个阻塞队列  pdfData 的输入队列
+    public static BlockingQueue<byte[]> pdfqueue = new ArrayBlockingQueue<>(1024 * 1024);
 
     @Override
     public void contextInitialized(ServletContextEvent arg0) {
@@ -49,7 +54,7 @@ public class ContextListener implements ServletContextListener {
         Map<String,List<String>> shareDirPathMap = onlineDataDirConfig.getShareMaplist();
 
         //循环 分享目录通过key获取目标文件地址 key 通过 targetDirPathMap 获取地址     通过value获取共享文件地址
-
+        //online 的日志输出文件
         final File logFile = new File(logFilePath);
         if (!logFile.exists()) {
             try {
@@ -58,13 +63,23 @@ public class ContextListener implements ServletContextListener {
                 e.printStackTrace();
             }
         }
-        new WriteLogThread(queue, logFile).start();//日志线程
+        //pdf 的日志输出文件
+        final File pdfLocalFile = new File(pdfLocalFilePath);
+        if (!pdfLocalFile.exists()) {
+            try {
+                pdfLocalFile.createNewFile();//创建新的文件夹
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        //创建个 线程处理阻塞队列里的 文件
+        new WriteLogThread(queue,pdfqueue,logFile,pdfLocalFile).start();//日志线程
 
         for (String key : shareDirPathMap.keySet()) {
             List<String> sharePaths = shareDirPathMap.get(key);
             final String targetPath = targetDirPathMap.get(key);
             //监听共享文件夹文件变化线程
-            final String key2 = key; //
+            final String key2 = key; //给为 那个路径地址的key
             final File targetFile = new File(targetPath);
             for(String sharePath : sharePaths) { //遍历当前可以
                 final File shareFile = new File(sharePath);
@@ -86,16 +101,18 @@ public class ContextListener implements ServletContextListener {
                                     System.out.println("共享文件夹修改"+file.getName()+"---"+key2);
                                     //修改操作的 业务
                                     //创建业务线程
-                                    OnlineDataBusThread task;
-                                    if("txt".equals(key2)){
-                                        task =  new OnlineDataBusThread(file,queue,key2,"ShareDir",onlineAnalysis);//监听线程1
-                                        //不进行copy操作
+                                    OnlineDataBusThread task = new OnlineDataBusThread(file,queue,pdfqueue,key2,"ShareDir",onlineAnalysis);
+                                  /*  if("txt".equals(key2)){
+                                        task = new OnlineDataBusThread(file,queue,key2,"ShareDir",onlineAnalysis) ;//监听线程1
                                         //task =  new ShareFileCopeThread(file,targetPath,queue,key2);//监听线程1
+                                    }else if("superAlmost".equals(key2)){ //为 超差点的
+                                        task =  new OnlineDataBusThread(file,queue,key2,"ShareDir",onlineAnalysis);//监听线程1
+                                    } else if("stablePassRate".equals(key2)){ //稳定性合格率
+                                        task =  new OnlineDataBusThread(file,queue,key2,"ShareDir",onlineAnalysis);//监听线程1
                                     }else{
                                         task =  new OnlineDataBusThread(file,queue,key2,"ShareDir",onlineAnalysis);//监听线程1
-                                        //不进行copy操作
                                         //task =  new ShareFileCopeThread(file,targetPath,queue,key2);//监听线程1
-                                    }
+                                    }*/
 
                                     Future<?> future = service.submit(task);//开启该线程
                                     try {
@@ -134,12 +151,12 @@ public class ContextListener implements ServletContextListener {
 
                             @Override
                             public void create(File file) {
-                                OnlineDataBusThread task1;
-                                if("txt".equals(key2)){
+                                OnlineDataBusThread task1 = new OnlineDataBusThread(file,queue,pdfqueue,key2,"LocalDir",onlineAnalysis);
+                               /* if("txt".equals(key2)){
                                     task1 =   new OnlineDataBusThread(file,queue,key2,"LocalDir",onlineAnalysis);//监听线程1
                                 }else{
                                     task1 =   new OnlineDataBusThread(file,queue,key2,"LocalDir",onlineAnalysis);//监听线程1
-                                }
+                                }*/
                                 Future<?> future = service.submit(task1);//开启该线程
                                 try {
                                     future.get();// 结果
@@ -203,14 +220,16 @@ class ShareFileCopeThread implements Runnable {
 
 class OnlineDataBusThread implements Runnable {
     private BlockingQueue<byte[]> buffer;
+    private BlockingQueue<byte[]> pdfQueue;
     private File file;
     private String business;
     private String dirType;
     private IOnlineAnalysis onlineAnalysis;
 
-    public OnlineDataBusThread(File file, BlockingQueue<byte[]> buffer, String business,String dirType, IOnlineAnalysis onlineAnalysis) {
+    public OnlineDataBusThread(File file, BlockingQueue<byte[]> buffer,BlockingQueue<byte[]>  pdfQueue, String business,String dirType, IOnlineAnalysis onlineAnalysis) {
         this.file = file;
         this.buffer = buffer;
+        this.pdfQueue = pdfQueue;
         this.business = business;
         this.dirType = dirType;
         this.onlineAnalysis = onlineAnalysis;
@@ -224,32 +243,45 @@ class OnlineDataBusThread implements Runnable {
         //创建业务操作的 业务
         Date date = new Date();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-        String outLog = simpleDateFormat.format(date)+"=="+business+dirType+"=="+file.getName()+"\r\n";
+        String outLog = simpleDateFormat.format(date)+"=="+business+"=="+dirType+"=="+file.getName()+"\r\n";
         try {
-            buffer.put(outLog.getBytes());
+        //业务   在业务 有异常时不输出日志
+            if (business != null && "txt".equals(business)) {
+                onlineAnalysis.txtAnalysisRule(file);//数据抽取到 oracle
+                buffer.put(outLog.getBytes());
+            }else if(business != null && "superAlmost".equals(business)){ //超差点  pdf
+                onlineAnalysis.superAlmostExtractor(file);//数据抽取到 oracle
+                pdfQueue.put(outLog.getBytes());
+            }else if(business != null && "stablePassRate".equals(business)){ //稳定性合格率  pdf
+                onlineAnalysis.stablePassRateExtractor(file);//数据抽取到 oracle
+                pdfQueue.put(outLog.getBytes());
+            }
+            else{
+                onlineAnalysis.demoAnalysisRule(file);//数据抽取到 oracle
+                buffer.put(outLog.getBytes());
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        //业务
-        if (business != null && "txt".equals(business)) {
-            onlineAnalysis.txtAnalysisRule(file);//数据抽取到 oracle
-        }else{
-            onlineAnalysis.demoAnalysisRule(file);//数据抽取到 oracle
-        }
-
     }
 }
 
 class WriteLogThread extends Thread {
     private BlockingQueue<byte[]> buffer;
-    private File targetFile;
-    private FileOutputStream fileOutputStream;
+    private BlockingQueue<byte[]> pdfBuffer;
+    private File onlineDataOFile;
+    private File pdfDataOFile;
+    private FileOutputStream onlineDataOutputStream;
+    private FileOutputStream pdfDataOutputStream;
 
-    public WriteLogThread(BlockingQueue<byte[]> buffer, File targetFile) {
+    public WriteLogThread(BlockingQueue<byte[]> buffer,BlockingQueue<byte[]> pdfBuffer ,File onlineDataOFile,File pdfDataOFile) {
         this.buffer = buffer;
-        this.targetFile = targetFile;
+        this.pdfBuffer = pdfBuffer;
+        this.onlineDataOFile = onlineDataOFile;
+        this.pdfDataOFile = pdfDataOFile;
         try {
-            this.fileOutputStream = new FileOutputStream(targetFile, true);
+            this.onlineDataOutputStream = new FileOutputStream(onlineDataOFile, true);
+            this.pdfDataOutputStream = new FileOutputStream(pdfDataOFile, true);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -259,7 +291,10 @@ class WriteLogThread extends Thread {
         while (true) {
             try {
                 if (!buffer.isEmpty()) {
-                    fileOutputStream.write(buffer.take());
+                    onlineDataOutputStream.write(buffer.take());
+                }
+                if (!pdfBuffer.isEmpty()) {
+                    pdfDataOutputStream.write(pdfBuffer.take());
                 }
             } catch (Exception e) {
                 e.printStackTrace();

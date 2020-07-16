@@ -11,11 +11,15 @@
 package com.faw.modules.piWebJob.service.impl;
 
 import com.faw.base.annotation.TxtFild;
+import com.faw.config.PdfClownKeyConfig;
 import com.faw.modules.piWebJob.dao.OnlineDataDao;
 import com.faw.modules.piWebJob.dao.PiwebCarInfoDao;
 import com.faw.modules.piWebJob.entity.OnLineData;
 import com.faw.modules.piWebJob.service.IOnlineAnalysis;
+import com.faw.modules.stablePassRate.entity.PiwebStablePassrate;
+import com.faw.modules.superAlmost.entity.PiwebSuperAlmost;
 import com.faw.utils.io.FileUtils;
+import com.faw.utils.pdfBox.PDFUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.hadoop.util.hash.Hash;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +50,13 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
 
     @Autowired
     private PiwebCarInfoDao piwebCarInfoDao;
+
+    @Autowired
+    private PdfClownKeyConfig pdfClownKeyConfig;
+
+    @Autowired
+    private OnlineDataDao dao;
+
 
     //txt 格式文件分析
     public  void  txtAnalysisRule(File dirfile){
@@ -215,9 +226,11 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                         e.printStackTrace();
                     }
                     for(HashMap<String,Object> carInfo : carInfos){
-                        String[] alisaNames = carInfo.get("CAR_ALIAS_NAME").toString().split(",");
-                        if(ArrayUtils.contains(alisaNames, onLineData.getModel())){
-                            onLineData.setFactory(carInfo.get("FACTORY").toString());
+                        if(carInfo.get("CAR_ALIAS_NAME") !=null && carInfo.get("CAR_ALIAS_NAME") !=""){
+                            String[] alisaNames = carInfo.get("CAR_ALIAS_NAME").toString().split(",");
+                            if(ArrayUtils.contains(alisaNames, onLineData.getModel())){
+                                onLineData.setFactory(carInfo.get("FACTORY").toString());
+                            }
                         }
 
                     }
@@ -433,11 +446,12 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                     e.printStackTrace();
                 }
                 for(HashMap<String,Object> carInfo : carInfos){
-                    String[] alisaNames = carInfo.get("CAR_ALIAS_NAME").toString().split(",");
-                    if(ArrayUtils.contains(alisaNames, onLineData.getModel())){
-                        onLineData.setFactory(carInfo.get("FACTORY").toString());
+                    if(carInfo.get("CAR_ALIAS_NAME") !=null && carInfo.get("CAR_ALIAS_NAME") !="") {
+                        String[] alisaNames = carInfo.get("CAR_ALIAS_NAME").toString().split(",");
+                        if (ArrayUtils.contains(alisaNames, onLineData.getModel())) {
+                            onLineData.setFactory(carInfo.get("FACTORY").toString());
+                        }
                     }
-
                 }
             }
             onlineDataDao.insertMyBatch(dataList);
@@ -470,5 +484,109 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
 
         onLineData.setMeasureTime(dateStr);//设置时间
         return onLineData;
+    }
+
+    //pdf -------------解析------------------
+    @Override
+    public void superAlmostExtractor(File file) {
+        List<String> allRows = new ArrayList<>();
+        List<List<String>> pageList = PDFUtils.redTable(file);
+        List<PiwebSuperAlmost> results = new ArrayList<>();
+
+        for(List<String> rows : pageList){
+            for(int x=1;x<rows.size();x++){
+                allRows.add(rows.get(x));
+            }
+        }
+        for(String line : allRows ){
+            String[] clowns =  line.split("\\|");
+            Map<String,Integer> superAlmostMaoKey =  pdfClownKeyConfig.getSuperAlmost();
+            //没行一个实体
+            PiwebSuperAlmost superAlmost = new PiwebSuperAlmost();
+            Class clazz = superAlmost.getClass();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
+            SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd");
+
+            //循环配置文件给 实体的 参数赋值
+            for(String key : superAlmostMaoKey.keySet()){
+                try {
+                    Field entityFile =  clazz.getDeclaredField(key);
+                    entityFile.setAccessible(true);
+                    if("createTime".equals(key)){ //时间单独处理
+                        entityFile.set(superAlmost,sdf.parse(clowns[superAlmostMaoKey.get(key)]));
+                    }
+                    else{
+                        entityFile.set(superAlmost,clowns[superAlmostMaoKey.get(key)].toString().replace("\\\"","").trim());
+                    }
+                } catch (NoSuchFieldException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
+            }
+            //针对  字符串的 dataTime
+            superAlmost.setDateTime(sdf2.format(superAlmost.getCreateTime()));
+            results.add(superAlmost);
+        }
+
+        if(results.size()>0){
+            dao.insertListSuper(results);
+        }
+
+    }
+
+    @Override
+    public void stablePassRateExtractor(File file) {
+        List<List<String>> pageList = PDFUtils.redTable(file);
+        List<String> allRows = new ArrayList<>();
+        List<PiwebStablePassrate> results = new ArrayList<>();
+
+        for(List<String> rows : pageList){
+            for(int x=0;x<rows.size();x++){
+                allRows.add(rows.get(x));
+            }
+        }
+
+        for(String line : allRows ){
+            String[] clowns =  line.split("\\|");
+
+            Map<String,Integer> stablePassRateKey =  pdfClownKeyConfig.getStablePassRate();
+            if(clowns.length<stablePassRateKey.size()){
+                continue;
+            }
+            //没行一个实体
+            PiwebStablePassrate stablePassrate = new PiwebStablePassrate();
+            Class clazz = stablePassrate.getClass();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
+
+            //循环配置文件给 实体的 参数赋值
+            for(String key : stablePassRateKey.keySet()){
+                try {
+                    Field entityFile =  clazz.getDeclaredField(key);
+                    entityFile.setAccessible(true);
+                    if("createTime".equals(key)){ //时间单独处理
+                        entityFile.set(stablePassrate,sdf.parse(clowns[stablePassRateKey.get(key)]));
+                    }
+                    else{
+                        entityFile.set(stablePassrate,clowns[stablePassRateKey.get(key)].toString().replaceAll("\\\"","").replaceAll(" ",""));
+                    }
+                } catch (NoSuchFieldException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
+            }
+            results.add(stablePassrate);
+        }
+        if(results.size()>0){
+            dao.insertListStable(results);
+        }
+
     }
 }
