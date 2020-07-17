@@ -83,8 +83,31 @@ public class PiwebSuperAlmost  extends IdEntity {
     @TableField("MERSURE_POINT")
     private String measurePoint;
 
+    /**
+     * 类别
+     */
     @TableField("CATEGORY_DATA")
     private String categoryData;
+
+    public void setCategoryData(String categoryData) {
+        if(categoryData!=null && categoryData!=""){
+            String[] arr= categoryData.split("_");
+            if(arr.length>1){
+                this.categoryData = arr[1];
+                this.supplier =  arr[2];
+            }else{
+                this.categoryData = arr[1];
+                this.supplier = "";
+            }
+        }
+    }
+
+    /**
+     * 工供应商
+     */
+    @TableField("SUPPLIER")
+    private String supplier;
+
 
     public Date getUpdateTime() {
         if(updateTime == null){

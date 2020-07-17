@@ -36,6 +36,26 @@ public class PiwebStablePassrate extends IdEntity {
      */
     @TableField("category_data")
     private String categoryData;
+
+    public void setCategoryData(String categoryData) {
+        if(categoryData!=null && categoryData!=""){
+            String[] arr= categoryData.split("_");
+            if(arr.length>1){
+                this.categoryData = arr[1];
+                this.supplier =  arr[2];
+            }else{
+                this.categoryData = arr[1];
+                this.supplier = "";
+            }
+        }
+    }
+
+    /**
+     * 工供应商
+     */
+    @TableField("supplier")
+    private String supplier;
+
     /**
      * 功能尺寸稳定性 绿色指标
      */
