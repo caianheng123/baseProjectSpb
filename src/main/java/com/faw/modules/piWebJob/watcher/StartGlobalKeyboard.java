@@ -135,7 +135,7 @@ public class StartGlobalKeyboard implements CommandLineRunner {
                     Long time = null;
 
                     try {
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                         date = dateFormat.parse(beginTime);
                         time = file1.lastModified();
                     } catch (ParseException e) {
@@ -152,8 +152,8 @@ public class StartGlobalKeyboard implements CommandLineRunner {
 
             for(int x =0 ;x<fileList.length;x++){
                 Date date2 = new Date();
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-                String outLog = simpleDateFormat.format(date2)+"=="+bustype+"=="+"ShareFile=="+fileList[x].getName()+"==fileTime=="+simpleDateFormat.format(new Date(fileList[x].lastModified()))+"\r\n";
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String outLog = simpleDateFormat.format(date2)+"=="+bustype+"=="+"ShareDir=="+fileList[x].getName()+"==fileTime=="+simpleDateFormat.format(new Date(fileList[x].lastModified()))+"\r\n";
                 try {
                     if("txt".equals(bustype)){
                         onlineAnalysis.txtAnalysisRule(fileList[x]);

@@ -84,11 +84,12 @@ http:
 abf:
     log:
        logFile : D:\piWebSchedule\onlineDataLocalLog.txt
+       localSupplementLog : D:\piWebSchedule\localSupplementLog.txt
        firstReadLog : D:\piWebSchedule\onlineDataShareLog.txt
        pdfLogFile : D:\piWebSchedule\pdfDataLocalLog.txt
        firstPdfLog : D:\piWebSchedule\pdfDataShareLog.txt
        firstStart : D:\piWebSchedule\firstStart
-       beginTime : 2020-06-01
+       beginTime : 2020-05-31 23:59:59
        path: D:\piWebSchedule\logs
 onlinedata:
     dirobj :

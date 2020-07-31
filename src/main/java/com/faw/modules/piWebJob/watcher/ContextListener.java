@@ -3,9 +3,11 @@ package com.faw.modules.piWebJob.watcher;
 import com.faw.config.OnlineDataDirConfig;
 import com.faw.modules.piWebJob.service.IOnlineAnalysis;
 import com.faw.utils.io.FileUtils;
+import org.apache.tools.ant.util.ReaderInputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -13,10 +15,7 @@ import javax.servlet.annotation.WebListener;
 import javax.xml.crypto.Data;
 import java.io.*;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 
 //
@@ -38,7 +37,9 @@ public class ContextListener implements ServletContextListener {
     private IOnlineAnalysis onlineAnalysis;
 
     //设置个线程池
-    private ExecutorService service = Executors.newSingleThreadExecutor(); // 线程池
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor = buildThreadPoolTaskExecutor();// 线程池
+
+    private BlockingQueue<Runnable> bq = new LinkedBlockingQueue<>();// 任务放入队列
 
     //设置个阻塞队列  onlineData 的输入队列
     public static BlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(1024 * 1024);
@@ -72,6 +73,7 @@ public class ContextListener implements ServletContextListener {
                 e.printStackTrace();
             }
         }
+
         //创建个 线程处理阻塞队列里的 文件
         new WriteLogThread(queue,pdfqueue,logFile,pdfLocalFile).start();//日志线程
 
@@ -93,35 +95,23 @@ public class ContextListener implements ServletContextListener {
                                 }
                                 @Override
                                 public void delete(File file2) {
-                                    System.out.println("文件已删除\t" + file2.getAbsolutePath());
                                     //删除操作的 业务
                                 }
                                 @Override
                                 public void create(File file) {
-                                    System.out.println("共享文件夹修改"+file.getName()+"---"+key2);
                                     //修改操作的 业务
                                     //创建业务线程
                                     OnlineDataBusThread task = new OnlineDataBusThread(file,queue,pdfqueue,key2,"ShareDir",onlineAnalysis);
-                                  /*  if("txt".equals(key2)){
-                                        task = new OnlineDataBusThread(file,queue,key2,"ShareDir",onlineAnalysis) ;//监听线程1
-                                        //task =  new ShareFileCopeThread(file,targetPath,queue,key2);//监听线程1
-                                    }else if("superAlmost".equals(key2)){ //为 超差点的
-                                        task =  new OnlineDataBusThread(file,queue,key2,"ShareDir",onlineAnalysis);//监听线程1
-                                    } else if("stablePassRate".equals(key2)){ //稳定性合格率
-                                        task =  new OnlineDataBusThread(file,queue,key2,"ShareDir",onlineAnalysis);//监听线程1
-                                    }else{
-                                        task =  new OnlineDataBusThread(file,queue,key2,"ShareDir",onlineAnalysis);//监听线程1
-                                        //task =  new ShareFileCopeThread(file,targetPath,queue,key2);//监听线程1
-                                    }*/
-
-                                    Future<?> future = service.submit(task);//开启该线程
+                                  /*
+                                    Future<?> future = threadPoolTaskExecutor.submit(task);//开启该线程
                                     try {
                                         future.get();// 结果
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
                                     } catch (ExecutionException e) {
                                         e.printStackTrace();
-                                    }
+                                    }*/
+                                    threadPoolTaskExecutor.execute(task);//开启该线程
                                 }
                             });
                         } catch (Exception e) {
@@ -140,31 +130,25 @@ public class ContextListener implements ServletContextListener {
                     try {
                         new WatchDir(targetFile, true, new FileActionCallback() {
                             @Override
-                            public void modify(File file1) {
-
-                            }
+                            public void modify(File file) {}
                             @Override
-                            public void delete(File file)
-                            {
+                            public void delete(File file) {
                                 //删除操作的 业务
                             }
-
                             @Override
                             public void create(File file) {
                                 OnlineDataBusThread task1 = new OnlineDataBusThread(file,queue,pdfqueue,key2,"LocalDir",onlineAnalysis);
-                               /* if("txt".equals(key2)){
-                                    task1 =   new OnlineDataBusThread(file,queue,key2,"LocalDir",onlineAnalysis);//监听线程1
-                                }else{
-                                    task1 =   new OnlineDataBusThread(file,queue,key2,"LocalDir",onlineAnalysis);//监听线程1
-                                }*/
-                                Future<?> future = service.submit(task1);//开启该线程
+                                /*
+                                Future<?> future = threadPoolTaskExecutor.submit(task1);//开启该线程
                                 try {
                                     future.get();// 结果
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 } catch (ExecutionException e) {
                                     e.printStackTrace();
-                                }
+                                }*/
+                                threadPoolTaskExecutor.execute(task1);//开启该线程
+
                             }
                         });
                     } catch (Exception e) {
@@ -183,7 +167,38 @@ public class ContextListener implements ServletContextListener {
         System.out.println("===========================MyServletContextListener销毁");
     }
 
+    private static ThreadPoolTaskExecutor buildThreadPoolTaskExecutor() {
+        //一个线程池中的线程异常了，那么线程池会怎么处理这个线程? 问题验证
+        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+        //ThreadPoolExecutor tpe = new ThreadPoolExecutor(3, 6, 50, TimeUnit.MILLISECONDS, bq);
+        //线程池数量
+        threadPoolTaskExecutor.setCorePoolSize(10);
+        //任务执行最大线程数
+        threadPoolTaskExecutor.setMaxPoolSize(10);
+        //线程池缓存任务队列大小
+        threadPoolTaskExecutor.setQueueCapacity(1000);
+        //线程允许空闲时长 (单位秒 SECONDS)
+        threadPoolTaskExecutor.setKeepAliveSeconds(20);
+        //线程超过空闲时间限制，均会退出直到线程数量为0
+        threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
+        //对Runnable任务装饰一下， 在任务执行时完成异常日志打印、ThreadLocal清理等功能
+        threadPoolTaskExecutor.setTaskDecorator(null);
+        //线程异常处理策略
 
+        /**
+         * 四种线程的拒绝策略
+         *
+         *　new ThreadPoolExecutor.AbortPolicy();//默认，队列满了丢任务抛出异常
+         *　new ThreadPoolExecutor.DiscardPolicy();//队列满了丢任务不异常
+         *　new ThreadPoolExecutor.DiscardOldestPolicy();//将最早进入队列的任务删，之后再尝试加入队列
+         *　new ThreadPoolExecutor.CallerRunsPolicy();//如果添加到线程池失败，那么主线程会自己去执行该任务
+         */
+        threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
+
+        //初始化线程池
+        threadPoolTaskExecutor.initialize();
+        return threadPoolTaskExecutor;
+    }
 }
 
 class ShareFileCopeThread implements Runnable {

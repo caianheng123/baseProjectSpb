@@ -3,6 +3,7 @@ package com.faw.modules;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.faw.modules.jobView.entity.ScheduleJobLogEntity;
+import com.faw.modules.jobView.jobs.ProdJob;
 import com.faw.modules.jobView.service.ScheduleJobLogService;
 import com.faw.modules.outPutLog.service.TimeOutPutLogService;
 import com.faw.modules.piWebJob.dao.OnlineDataDao;
@@ -41,6 +42,9 @@ public class QualityApplicationTests {
 
 	@Autowired
 	private IPdfExtract iPdfExtract;
+
+	@Autowired
+	private ProdJob prodJob;
 
 	@Autowired
 	private OnlineDataDao OnlineDataDao;
@@ -101,5 +105,12 @@ public class QualityApplicationTests {
 		List<OnLineData> lineData = new ArrayList<>();
 		lineData.add(a);
 		OnlineDataDao.insertMyBatch(lineData);
+	}
+	/*
+		测试补录数据
+	 */
+	@Test
+	public void testSupplment(){
+		prodJob.shareFileReMakeDate();
 	}
 }
