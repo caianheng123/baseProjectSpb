@@ -140,7 +140,7 @@ public class ProdJob {
         }
         return localLogMap;
     }
-
+    //本地手动放到 本地文件夹补录的数据 补偿方法
     public void localFileReMakeDate() {
         Map<String, String> targetMap = onlineDataDirConfig.getTargetMap();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -204,8 +204,9 @@ public class ProdJob {
 
     //共享补数据 是 将共享文件夹的 数据 输出到 本地对应的文件夹内
 
+
     public void shareFileReMakeDate() {
-        //共享文件夹的 文件 与  本地文件夹的日志 ShareDir  +  和首次启动的日志进行比较    + 补录文件日志    ShareDir的 比较 把gap文件补录
+        //共享文件夹的 文件 与  本地文件夹的日志 ShareDir  +  和首次启动的日志  + 补录文件日志    ShareDir的 比较 把gap文件补录
         //Map<String, String> targetMap = onlineDataDirConfig.getTargetMap();
 
         Map<String, List<String>> shareMap = onlineDataDirConfig.getShareMaplist();

@@ -49,4 +49,10 @@ public interface ScheduleJobService extends IService<ScheduleJobEntity> {
 	 * 恢复运行
 	 */
 	void resume(String[] jobIds);
+
+	/**
+	 *  根据id  重置某个任务
+	 */
+
+	void resetOneJobById(String jobId);
 }

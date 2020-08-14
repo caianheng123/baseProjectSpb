@@ -82,6 +82,14 @@ public class ScheduleJobServiceImpl extends ServiceImpl<ScheduleJobDao, Schedule
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
+	public void resetOneJobById(String jobId){
+		ScheduleJobEntity scheduleJob =	this.selectById(jobId);
+		ScheduleUtils.updateScheduleJob(scheduler, scheduleJob);
+	}
+
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
     public void deleteBatch(String[] jobIds) {
     	for(String jobId : jobIds){
     		ScheduleUtils.deleteScheduleJob(scheduler, jobId);
