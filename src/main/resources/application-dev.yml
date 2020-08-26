@@ -89,7 +89,7 @@ abf:
        pdfLogFile : D:\piWebSchedule\pdfDataLocalLog.txt
        firstPdfLog : D:\piWebSchedule\pdfDataShareLog.txt
        firstStart : D:\piWebSchedule\firstStart
-       beginTime : 2020-05-31 23:59:59
+       beginTime : 2020-08-13 23:59:59
        path: D:\piWebSchedule\logs
 onlinedata:
     dirobj :
@@ -116,9 +116,11 @@ onlinedata:
               - '\\\\10.228.165.173\Export\CCSB'
               - '\\\\10.228.165.178\Export\CCSB'
             superAlmost:
-              - '\\\\faw-vw.in\fs\org\P-Q-MT\p-q-mt\二厂测量技术科\数据管理\三方数据超差点列表报告\B8L\ZSB'
+              - '\\\\faw-vw.in\fs\org\P-Q-MT\p-q-mt\SQL-DATA\list\AU581'
+              - '\\\\faw-vw.in\fs\org\P-Q-MT\p-q-mt\SQL-DATA\list\B8L'
             stablePassRate:
-              - '\\\\faw-vw.in\fs\org\P-Q-MT\p-q-mt\二厂测量技术科\数据管理\三方数据统计报告\B8L\ZSB'
+              - '\\\\faw-vw.in\fs\org\P-Q-MT\p-q-mt\SQL-DATA\sta\AU581'
+              - '\\\\faw-vw.in\fs\org\P-Q-MT\p-q-mt\SQL-DATA\sta\B8L'
 pdfextract:
     confobj :
        superAlmost: {

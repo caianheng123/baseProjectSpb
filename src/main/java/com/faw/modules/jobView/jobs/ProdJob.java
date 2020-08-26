@@ -239,7 +239,8 @@ public class ProdJob {
             try {
                 List<String> shareDirPath = shareMap.get(key);
                 for(String path : shareDirPath){
-                    files.addAll(Arrays.asList(new File(path).listFiles(fileFilter)));  //过滤调配置时间前的数据
+                    File  shareFile = new File(path);
+                    files.addAll(Arrays.asList(shareFile.listFiles(fileFilter)));  //过滤调配置时间前的数据
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -268,7 +269,7 @@ public class ProdJob {
                     }
                     String outLog = dateFormat.format(new Date()) + "==" + key + "==" + "ShareDir==" + f.getName() + "\r\n";
                     //补录
-                   /* if ("txt".equals(key)) {
+                   if ("txt".equals(key)) {
                         onlineAnalysis.txtAnalysisRule(f); //补录txt
                     } else if ("superAlmost".equals(key)) { // 超差点
                         onlineAnalysis.superAlmostExtractor(f);
@@ -276,7 +277,7 @@ public class ProdJob {
                         onlineAnalysis.stablePassRateExtractor(f);
                     } else {//demo数据
                         onlineAnalysis.demoAnalysisRule(f);//补录demo
-                    }*/
+                    }
 
                     try {
                         File outFile = new File(localSupplementLog);

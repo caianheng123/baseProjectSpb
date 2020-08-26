@@ -15,7 +15,7 @@
 
     <!-- Log file debug output -->
     <appender name="debug" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${log.path}/timeOutLog/log/timOutog.log</file>
+    <file>${log.path}/piWeb/data.log</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
         <fileNamePattern>${log.path}/debug.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
         <maxFileSize>50MB</maxFileSize>

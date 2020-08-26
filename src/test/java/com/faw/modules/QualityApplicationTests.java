@@ -73,27 +73,27 @@ public class QualityApplicationTests {
 
 	@Test
 	public void httpTest() throws  Exception {
-		String str = httpAPIService.doGet(" ");
-		System.out.println("========="+str);
+		/*String str = httpAPIService.doGet(" ");
+		System.out.println("========="+str);*/
 	}
 
 	@Test
 	public void fileReadTest(){
 
-		onlineAnalysis.txtAnalysisRule(new File("D:\\piWebSchedule\\onlineData\\demo\\B8L\\T-Cross_AB1_79202027501276_Cycle Time.txt"));
+		//onlineAnalysis.txtAnalysisRule(new File("D:\\piWebSchedule\\onlineData\\demo\\B8L\\T-Cross_AB1_79202027501276_Cycle Time.txt"));
 	}
 
 	@Test
 	public void pdfExtractTest(){
 		// String templetePath = "D:\\VW481_ZSB_数据三方列表_FK.pdf";
-		 String templetePath = "D:\\VW481_ZSB_数据三方统计_HK.pdf";
+	/*	 String templetePath = "D:\\VW481_ZSB_数据三方统计_HK.pdf";
 		//iPdfExtract.superAlmostExtractor(new File(templetePath));
-		iPdfExtract.stablePassRateExtractor(new File(templetePath));
+		iPdfExtract.stablePassRateExtractor(new File(templetePath));*/
 	}
 
 	@Test
 	public void batchInsert(){
-		OnLineData a = new OnLineData();
+		/*OnLineData a = new OnLineData();
 		a.setMeasureTime("2020-06-11 12:12:12");
 		try {
 			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -104,7 +104,7 @@ public class QualityApplicationTests {
 		a.setId("999999999999921");
 		List<OnLineData> lineData = new ArrayList<>();
 		lineData.add(a);
-		OnlineDataDao.insertMyBatch(lineData);
+		OnlineDataDao.insertMyBatch(lineData);*/
 	}
 	/*
 		测试补录数据
