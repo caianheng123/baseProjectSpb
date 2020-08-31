@@ -10,9 +10,11 @@
  */
 package com.faw.modules.jobView.jobs;
 
+import com.alibaba.fastjson.JSON;
 import com.faw.config.OnlineDataDirConfig;
 import com.faw.modules.piWebJob.service.IOnlineAnalysis;
 import com.faw.utils.io.FileUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.util.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +27,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.LoggingMXBean;
 
 /**
  * 〈一句话功能简述〉<br>
@@ -35,6 +38,7 @@ import java.util.*;
  * @since 1.0.0
  */
 @Component("prodJob")
+@Slf4j
 public class ProdJob {
 
     @Autowired
@@ -226,7 +230,7 @@ public class ProdJob {
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-                if(time > date.getTime()){ //初次启动解析 6月开始的数据
+                if(time > date.getTime()){
                     return true;
                 }
                 return false;
@@ -240,7 +244,10 @@ public class ProdJob {
                 List<String> shareDirPath = shareMap.get(key);
                 for(String path : shareDirPath){
                     File  shareFile = new File(path);
-                    files.addAll(Arrays.asList(shareFile.listFiles(fileFilter)));  //过滤调配置时间前的数据
+
+                    File[] sharefiles =   shareFile.listFiles(fileFilter);
+                    log.debug(key+"====+++++++++++===="+ sharefiles.length);
+                    files.addAll(Arrays.asList(sharefiles));  //过滤调配置时间前的数据
                 }
             } catch (Exception e) {
                 e.printStackTrace();

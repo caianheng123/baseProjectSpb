@@ -102,10 +102,10 @@ onlinedata:
           stablePassRate : 'd:\piWebSchedule\onlineData\pdf\stablePassRate',
         }
         sharemaplist:
-            txt:
-              - '\\\\10.228.165.206\onlinedata'
-              - '\\\\10.228.165.209\onlinedata'
-              - '\\\\10.228.165.211\onlinedata'
+           # txt:
+           #   - '\\\\10.228.165.206\onlinedata'
+           #   - '\\\\10.228.165.209\onlinedata'
+           #   - '\\\\10.228.165.211\onlinedata'
             demoB8L:
               - '\\\\10.228.165.173\Export\B8L'
               - '\\\\10.228.165.178\Export\B8L'
@@ -118,9 +118,11 @@ onlinedata:
             superAlmost:
               - '\\\\faw-vw.in\fs\org\P-Q-MT\p-q-mt\SQL-DATA\list\AU581'
               - '\\\\faw-vw.in\fs\org\P-Q-MT\p-q-mt\SQL-DATA\list\B8L'
+              - '\\\\faw-vw.in\fs\org\P-Q-MT\p-q-mt\SQL-DATA\list\CCFB'
             stablePassRate:
               - '\\\\faw-vw.in\fs\org\P-Q-MT\p-q-mt\SQL-DATA\sta\AU581'
               - '\\\\faw-vw.in\fs\org\P-Q-MT\p-q-mt\SQL-DATA\sta\B8L'
+              - '\\\\faw-vw.in\fs\org\P-Q-MT\p-q-mt\SQL-DATA\sta\CCFB'
 pdfextract:
     confobj :
        superAlmost: {

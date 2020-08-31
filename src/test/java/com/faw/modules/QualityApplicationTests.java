@@ -20,7 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import com.faw.modules.piWebJob.service.IOnlineAnalysis;
 
-import java.io.File;
+import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -109,8 +109,46 @@ public class QualityApplicationTests {
 	/*
 		测试补录数据
 	 */
-	@Test
-	public void testSupplment(){
-		prodJob.shareFileReMakeDate();
+	/*@Test
+	public static void testSupplment() {
+	final File  file = new File("d:\\output.txt");
+
+	Thread t = new Thread(new Runnable() {
+		@Override
+		public void run() {
+			try {
+				FileOutputStream fileOutputStream =new FileOutputStream(file);
+				while (true){
+					fileOutputStream.write("abc\n".getBytes());
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+		}
+	});
+		t.start();
+
+		Thread t2 = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					FileInputStream inputStream=new FileInputStream(file);
+					BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+					while (true){
+						String s = reader.readLine();
+						System.out.println("----------------"+s);
+					}
+
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+			}
+		});
+
+		t2.start();
 	}
+
+*/
 }

@@ -4,6 +4,7 @@ import com.faw.config.OnlineDataDirConfig;
 import com.faw.modules.piWebJob.service.IOnlineAnalysis;
 import com.faw.utils.io.FileUtils;
 import com.faw.utils.io.IOUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-
+@Slf4j
 @Component
 @Order(value = 1)
 public class StartGlobalKeyboard implements CommandLineRunner {
@@ -92,28 +93,23 @@ public class StartGlobalKeyboard implements CommandLineRunner {
 
         //循环 分享目录通过key获取目标文件地址 key 通过 targetDirPathMap 获取地址     通过value获取共享文件地址
         for (String key : shareDirPathMap.keySet()) {
-            final  String key2 = key;
             List<String> sharePaths = shareDirPathMap.get(key);
+            final  String key2 = new String(key.getBytes());
             //创建共享文件copy线程
-            for(String sharePath : sharePaths){
-                final File shareFile = new File(sharePath);
+          for ( final  String sharePath : sharePaths) {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
+
+                        File shareFile = new File(sharePath);
                         try {
-                            read(shareFile,key2,queue,pdfQueue);
-                           /* if("txt".equals(key2)){
-                                read(shareFile,"txt",queue,pdfQueue);
-                            }else{
-                                read(shareFile,"demo",queue,pdfQueue);
-                            }*/
+                            read(shareFile, key2, queue, pdfQueue);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
                 }).start();
             }
-
         }
 
     }
@@ -127,6 +123,7 @@ public class StartGlobalKeyboard implements CommandLineRunner {
     }
     //解析方法
     public void  read (File file,String bustype,BlockingQueue<byte[]> buffer,BlockingQueue<byte[]> pdfBuffer) throws Exception {
+      log.debug(bustype+"share file length ==="+file.listFiles().length);
         if(file.isDirectory()){
             FileFilter fileFilter = new FileFilter() {
                 @Override
@@ -159,10 +156,10 @@ public class StartGlobalKeyboard implements CommandLineRunner {
                         onlineAnalysis.txtAnalysisRule(fileList[x]);
                         buffer.put(outLog.getBytes());
                     }else if("superAlmost".equals(bustype)){ //超差点pdf 解析
-                        onlineAnalysis.stablePassRateExtractor(file);//数据抽取到 oracle
+                        onlineAnalysis.superAlmostExtractor(fileList[x]);//数据抽取到 oracle
                         pdfBuffer.put(outLog.getBytes());
                     }else if("stablePassRate".equals(bustype)){ //稳定性合格率 解析
-                        onlineAnalysis.stablePassRateExtractor(file);//数据抽取到 oracle
+                        onlineAnalysis.stablePassRateExtractor(fileList[x]);//数据抽取到 oracle
                         pdfBuffer.put(outLog.getBytes());
                     }else{
                         onlineAnalysis.demoAnalysisRule(fileList[x]);
