@@ -92,9 +92,11 @@
 		passRate_func_green,
 		passRate_func_yellow,
 		passRate_func_red,
+		passRate_func_count,
 		passRate_com_green,
 		passRate_com_yellow,
 		passRate_com_red,
+		passRate_com_count,
 		create_time
 		)
 		<foreach collection="list" item="item" index="index" separator="union all">
@@ -114,10 +116,12 @@
 			#{item.stableComRed, jdbcType=VARCHAR},
 			#{item.passrateFuncGreen, jdbcType=VARCHAR},
 			#{item.passrateFuncYellow, jdbcType=VARCHAR},
-			#{item.passrateFuncRed, jdbcType=DATE},
+			#{item.passrateFuncRed, jdbcType=VARCHAR},
+			#{item.passrateFuncCount, jdbcType=VARCHAR},
 			#{item.passrateComGreen, jdbcType=VARCHAR},
 			#{item.passrateComYellow, jdbcType=VARCHAR},
 			#{item.passrateComRed, jdbcType=VARCHAR},
+			#{item.passrateComCount, jdbcType=VARCHAR},
 			#{item.createTime, jdbcType=TIMESTAMP}
 			from
 			dual

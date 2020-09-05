@@ -569,6 +569,8 @@ public class OnlineAnalysisImpl implements IOnlineAnalysis {
                     entityFile.setAccessible(true);
                     if("createTime".equals(key)){ //时间单独处理
                         entityFile.set(stablePassrate,sdf.parse(clowns[stablePassRateKey.get(key)]));
+                    }else if("splitClown".equals(key)){
+                        stablePassrate.setSplitClown(clowns[stablePassRateKey.get(key)].toString().replaceAll("\\\"","").replaceAll(" ","|"));
                     }
                     else{
                         entityFile.set(stablePassrate,clowns[stablePassRateKey.get(key)].toString().replaceAll("\\\"","").replaceAll(" ",""));

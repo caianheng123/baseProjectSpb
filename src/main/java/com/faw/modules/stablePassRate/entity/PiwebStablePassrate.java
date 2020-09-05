@@ -117,6 +117,33 @@ public class PiwebStablePassrate extends IdEntity {
     @TableField("passRate_com_red")
     private String passrateComRed;
 
+    public void setSplitClown(String splitClown) {
+        this.splitClown = splitClown;
+        if(splitClown!=null){
+            String[] arr = splitClown.split("\\|");
+            this.passrateFuncCount = arr[0];
+            this.passrateComCount = arr[1];
+
+        }
+    }
+
+    @TableField(exist = false)
+    private String splitClown;
+
+
+    /**
+     * 普通尺寸点数量
+     */
+    @TableField("passRate_com_count")
+    private String passrateComCount;
+
+    /**
+     * 功能尺寸点数量
+     */
+    @TableField("passRate_func_count")
+    private String passrateFuncCount;
+
+
     @TableField("CREATE_TIME")
     private Date createTime;
 

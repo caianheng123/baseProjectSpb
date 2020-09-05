@@ -102,10 +102,10 @@ onlinedata:
           stablePassRate : 'd:\piWebSchedule\onlineData\pdf\stablePassRate',
         }
         sharemaplist:
-           # txt:
-           #   - '\\\\10.228.165.206\onlinedata'
-           #   - '\\\\10.228.165.209\onlinedata'
-           #   - '\\\\10.228.165.211\onlinedata'
+            txt:
+              - '\\\\10.228.165.206\onlinedata'
+              - '\\\\10.228.165.209\onlinedata'
+              - '\\\\10.228.165.211\onlinedata'
             demoB8L:
               - '\\\\10.228.165.173\Export\B8L'
               - '\\\\10.228.165.178\Export\B8L'
@@ -153,5 +153,6 @@ pdfextract:
           passrateComGreen : 13,
           passrateComYellow : 14,
           passrateComRed : 15,
-          createTime : 16
+          createTime : 16,
+          splitClown: 17  # 特殊处理列
        }
